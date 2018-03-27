@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from openprocurement.ocds.api.storage import ReleaseStorage
 from openprocurement.ocds.api.utils import (
     parse_args,
@@ -12,139 +12,153 @@ from openprocurement.ocds.api.utils import (
 app = Flask(__name__)
 REGISTRY = {
     "config": None,
-    "app": Flask(__name__),
-    "db": None,
+    "storage": None,
 }
 
 
-@app.route("/release.json")
-def release():
-    id = request.args.get('id', None)
-    ocid = request.args.get('ocid', None)
-    package_url = request.args.get('packageURL', None)
-    if id:
-        if package_url:
-            return {"package_url": get_package_url(REGISTRY['db'], request, id=id)}
-        return jsonify(REGISTRY['db'].get_by_id(id))
-    elif ocid:
-        if package_url:
-            return {"package_url": get_package_url(REGISTRY['db'], request, ocid=ocid)}
-        return jsonify(REGISTRY['db'].get_by_ocid(ocid))
-    else:
-        return "ReleaseID is required"
+def create_app():
 
+    @app.route("/release.json")
+    def release():
+        id = request.args.get('id', None)
+        ocid = request.args.get('ocid', None)
+        package_url = request.args.get('packageURL', None)
+        if id:
+            if id in REGISTRY['storage'].db:
+                if package_url:
+                    return jsonify({"package_url": get_package_url(REGISTRY['storage'],
+                                                                   request,
+                                                                   id=id)})
+                return jsonify(REGISTRY['storage'].get_by_id(id))
+            else:
+                abort(404)
+        elif ocid:
+            if REGISTRY['storage'].get_by_ocid(ocid):
+                if package_url:
+                    return jsonify({"package_url": get_package_url(REGISTRY['storage'],
+                                                                   request,
+                                                                   ocid=ocid)})
+                return jsonify(REGISTRY['storage'].get_by_ocid(ocid))
+            else:
+                abort(404)
+        else:
+            return jsonify({"error": "ReleaseID is required"})
 
-@app.route("/releases.json")
-def releases():
-    link = '{}?start_date={}&end_date={}'
-    base_url = request.url.split('?')[0]
-    start_date, end_date = REGISTRY['db'].get_dates()
-    if request.args.get('page'):
-        next_page_dates = form_next_date(start_date, request.args.get('page'))
-        if end_date < next_page_dates[1]:
-            return "You have reached maximum date"
-        return jsonify({
-            "links": {
-                "next": link.format(base_url,
-                                    next_page_dates[0],
-                                    next_page_dates[1]),
-                "releases": get_releases_list(request,
-                                              next_page_dates[2],
-                                              next_page_dates[0],
-                                              REGISTRY['db'])
-            }
-        })
-    elif not request.args.get('start_date') and not request.args.get('end_date'):
-        next_page_dates = form_next_date(start_date, page=1)
-        return jsonify({
-            "links": {
-                "next": link.format(base_url,
-                                    next_page_dates[0],
-                                    next_page_dates[1]),
-                "releases": get_releases_list(request,
-                                              next_page_dates[2],
-                                              next_page_dates[0],
-                                              REGISTRY['db'])
-            }
-        })
-    elif request.args.get('start_date') and request.args.get('end_date'):
-        next_page_dates = form_next_date(request.args.get('end_date'))
-        if end_date < next_page_dates[1]:
-            return "You have reached maximum date"
-        return jsonify({
-            "links": {
-                "next": link.format(base_url,
-                                    next_page_dates[0],
-                                    next_page_dates[1]),
-                "releases": get_releases_list(request,
-                                              request.args.get('start_date'),
-                                              next_page_dates[0],
-                                              REGISTRY['db'])
-            }
-        })
+    @app.route("/releases.json")
+    def releases():
+        link = '{}?start_date={}&end_date={}'
+        base_url = request.url.split('?')[0]
+        global_start_date, global_end_date = REGISTRY['storage'].get_dates()
+        if request.args.get('page'):
+            next_page_dates = form_next_date(
+                global_start_date, request.args.get('page'))
+            if global_end_date < next_page_dates[2]:
+                return jsonify({"error": "Page does not exist"})
+            return jsonify({
+                "links": {
+                    "next": link.format(base_url,
+                                        next_page_dates[0],
+                                        next_page_dates[1]),
+                    "releases": get_releases_list(request,
+                                                  next_page_dates[2],
+                                                  next_page_dates[0],
+                                                  REGISTRY['storage'])
+                }
+            })
+        elif not request.args.get('start_date') and not request.args.get('end_date'):
+            next_page_dates = form_next_date(global_start_date, page=1)
+            return jsonify({
+                "links": {
+                    "next": link.format(base_url,
+                                        next_page_dates[0],
+                                        next_page_dates[1]),
+                    "releases": get_releases_list(request,
+                                                  next_page_dates[2],
+                                                  next_page_dates[0],
+                                                  REGISTRY['storage'])
+                }
+            })
+        elif request.args.get('start_date') and request.args.get('end_date'):
+            next_page_dates = form_next_date(request.args.get('end_date'))
+            if global_end_date < request.args.get('start_date'):
+                return jsonify({"error": "You have reached maximum date"})
+            return jsonify({
+                "links": {
+                    "next": link.format(base_url,
+                                        next_page_dates[0],
+                                        next_page_dates[1]),
+                    "releases": get_releases_list(request,
+                                                  request.args.get(
+                                                      'start_date'),
+                                                  next_page_dates[0],
+                                                  REGISTRY['storage'])
+                }
+            })
 
+    @app.route("/record.json")
+    def record():
+        ocid = request.args.get("ocid", None)
+        if ocid:
+            return jsonify(form_record(REGISTRY['storage'].get_by_ocid(ocid)))
+        else:
+            return jsonify({"error": "You must provide OCID"})
 
-@app.route("/record.json")
-def record():
-    ocid = request.args.get("ocid", None)
-    if ocid:
-        return jsonify(form_record(REGISTRY['db'].get_by_ocid(ocid)))
-    else:
-        return "You must provide OCID"
-
-
-@app.route("/records.json")
-def records():
-    link = '{}?start_date={}&end_date={}'
-    base_url = request.url.split('?')[0]
-    start_date, end_date = REGISTRY['db'].get_dates()
-    if request.args.get('page'):
-        next_page_dates = form_next_date(start_date, request.args.get('page'))
-        if end_date < next_page_dates[1]:
-            return "You have reached maximum date"
-        return jsonify({
-            "links": {
-                "next": link.format(base_url,
-                                    next_page_dates[0],
-                                    next_page_dates[1]),
-                "releases": get_records_list(request,
-                                             next_page_dates[2],
-                                             next_page_dates[0],
-                                             REGISTRY['db'])
-            }
-        })
-    elif not request.args.get('start_date') and not request.args.get('end_date'):
-        next_page_dates = form_next_date(start_date, page=1)
-        return jsonify({
-            "links": {
-                "next": link.format(base_url,
-                                    next_page_dates[0],
-                                    next_page_dates[1]),
-                "releases": get_records_list(request,
-                                             next_page_dates[2],
-                                             next_page_dates[0],
-                                             REGISTRY['db'])
-            }
-        })
-    elif request.args.get('start_date') and request.args.get('end_date'):
-        next_page_dates = form_next_date(request.args.get('end_date'))
-        if end_date < next_page_dates[1]:
-            return "You have reached maximum date"
-        return jsonify({
-            "links": {
-                "next": link.format(base_url,
-                                    next_page_dates[0],
-                                    next_page_dates[1]),
-                "releases": get_records_list(request,
-                                             request.args.get('start_date'),
-                                             next_page_dates[0],
-                                             REGISTRY['db'])
-            }
-        })
+    @app.route("/records.json")
+    def records():
+        link = '{}?start_date={}&end_date={}'
+        base_url = request.url.split('?')[0]
+        global_start_date, global_end_date = REGISTRY['storage'].get_dates()
+        if request.args.get('page'):
+            next_page_dates = form_next_date(
+                global_start_date, request.args.get('page'))
+            if global_end_date < next_page_dates[2]:
+                return jsonify({"error": "Page does not exist"})
+            return jsonify({
+                "links": {
+                    "next": link.format(base_url,
+                                        next_page_dates[0],
+                                        next_page_dates[1]),
+                    "records": get_records_list(request,
+                                                next_page_dates[2],
+                                                next_page_dates[0],
+                                                REGISTRY['storage'])
+                }
+            })
+        elif not request.args.get('start_date') and not request.args.get('end_date'):
+            next_page_dates = form_next_date(global_start_date, page=1)
+            return jsonify({
+                "links": {
+                    "next": link.format(base_url,
+                                        next_page_dates[0],
+                                        next_page_dates[1]),
+                    "records": get_records_list(request,
+                                                next_page_dates[2],
+                                                next_page_dates[0],
+                                                REGISTRY['storage'])
+                }
+            })
+        elif request.args.get('start_date') and request.args.get('end_date'):
+            next_page_dates = form_next_date(request.args.get('end_date'))
+            if global_end_date < request.args.get('start_date'):
+                return jsonify({"error": "You have reached maximum date"})
+            return jsonify({
+                "links": {
+                    "next": link.format(base_url,
+                                        next_page_dates[0],
+                                        next_page_dates[1]),
+                    "records": get_records_list(request,
+                                                request.args.get(
+                                                    'start_date'),
+                                                next_page_dates[0],
+                                                REGISTRY['storage'])
+                }
+            })
+    return app
 
 
 def run():
     args = parse_args()
     config = read_config(args.config)
-    REGISTRY['db'] = ReleaseStorage(config.get('db'))
+    REGISTRY['storage'] = ReleaseStorage(config.get('db'))
+    app = create_app()
     app.run()

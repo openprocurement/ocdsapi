@@ -14,7 +14,8 @@ install_requires = [
 ]
 
 test_requires = [
-    'nosetests'
+    'pytest',
+    "pytest-flask"
 ]
 
 entry_points = {

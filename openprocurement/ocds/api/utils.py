@@ -40,11 +40,11 @@ def get_releases_list(request, start_date, end_date, db):
     if request.args.get("idsOnly"):
         return [doc.value
                 for doc in db.get_all_ids_between_dates(start_date,
-                                                    end_date)]
+                                                        end_date)]
     else:
         return [single_rel_url.format(request.url_root, doc.value)
                 for doc in db.get_all_ids_between_dates(start_date,
-                                                    end_date)]
+                                                        end_date)]
 
 
 def get_package_url(db, request, id=None, ocid=None):

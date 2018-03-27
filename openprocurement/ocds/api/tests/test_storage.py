@@ -1,0 +1,130 @@
+import pytest
+import couchdb
+from openprocurement.ocds.api.storage import (
+    ReleaseStorage
+)
+from copy import deepcopy
+
+test_release = {
+   "_id": "test_id",
+   "_rev": "1-f9da923910334137a23e6f16af78d438",
+   "language": "uk",
+   "ocid": "test_ocid",
+   "initiationType": "tender",
+   "date": "2017-01-01",
+   "tag": [
+       "tender"
+   ],
+   "tender": {
+       "procurementMethod": "limited",
+       "status": "complete",
+       "id": "test_id"
+   },
+   "id": "test_id"
+}
+
+
+test_config = {
+    "host": "127.0.0.1",
+    "port": "5984",
+    "name": "test"
+}
+coudb_url = 'http://{}:{}'.format(test_config.get("host"),
+                                  test_config.get("port"))
+db_name = test_config.get("name")
+SERVER = couchdb.Server(coudb_url)
+
+
+@pytest.fixture(scope='function')
+def db(request):
+    def delete():
+        del SERVER[db_name]
+
+    if db_name in SERVER:
+        delete()
+    SERVER.create(db_name)
+    request.addfinalizer(delete)
+
+
+@pytest.fixture(scope='function')
+def storage(request):
+    storage = ReleaseStorage(test_config)
+    storage.db.save(test_release)
+    return storage
+
+
+class TestStorage(object):
+
+    @pytest.mark.parametrize('storage', [ReleaseStorage])
+    def test_create(self, storage):
+        if db_name in SERVER:
+            del SERVER[db_name]
+        storage = storage(test_config)
+        assert db_name in SERVER
+
+    def test_get_by_id(self, db, storage):
+        release = storage.get_by_id(test_release.get("id"))
+        assert release
+        assert "_id" not in release
+        assert "_rev" not in release
+
+    def test_get_by_ocid(self, db, storage):
+        release = storage.get_by_ocid(test_release.get("ocid"))
+        assert release
+        assert "_id" not in release
+        assert "_rev" not in release
+
+    def test_get_sorted_by_date(self, db, storage):
+        test_release['date'] = '2017-01-02'
+        test_release['_id'] = 'test_id1'
+        storage.db.save(test_release)
+        for item, id in zip(storage.get_sorted_by_date(), ['test_id', "test_id1"]):
+            assert item.value == id
+
+    def test_get_dates(self, db, storage):
+        dates = storage.get_dates()
+        assert dates[0] == test_release['date']
+        small_date = '2016-01-01'
+        test_release['date'] = small_date
+        test_release['_id'] = 'test1'
+        storage.db.save(test_release)
+        dates = storage.get_dates()
+        assert dates[0] == small_date
+
+    def test_get_all_ids_between_dates(self, db, storage):
+        date1 = '2016-01-01'
+        date2 = '2016-02-01'
+        release1 = deepcopy(test_release)
+        release1['date'] = date1
+        release1['_id'] = 'test1'
+        storage.db.save(release1)
+        release2 = deepcopy(test_release)
+        release2['date'] = date2
+        release2['_id'] = 'test2'
+        storage.db.save(release2)
+        result = list(storage.get_all_ids_between_dates(date1, date2))
+        assert len(result) == 2
+        assert result[0]['id'] == 'test1'
+        assert result[1]['id'] == 'test2'
+        assert result[0].doc['date'] == date1
+        assert result[1].doc['date'] == date2
+
+    def test_get_all_ocids_between_dates(self, db, storage):
+        date1 = '2016-01-01'
+        date2 = '2016-02-01'
+        release1 = deepcopy(test_release)
+        release1['date'] = date1
+        release1['_id'] = 'test1'
+        release1['ocid'] = 'ocid1'
+        storage.db.save(release1)
+        release2 = deepcopy(test_release)
+        release2['date'] = date2
+        release2['_id'] = 'test2'
+        release2['ocid'] = 'ocid2'
+        storage.db.save(release2)
+        result = list(storage.get_all_ocids_between_dates(date1, date2))
+        assert len(result) == 2
+        assert result[0].doc['ocid'] == 'ocid1'
+        assert result[1].doc['ocid'] == 'ocid2'
+        assert result[0].doc['date'] == date1
+        assert result[1].doc['date'] == date2

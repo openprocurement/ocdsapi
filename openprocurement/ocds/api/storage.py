@@ -40,21 +40,23 @@ class ReleaseStorage(object):
                                            releases_date_ocid])
 
     def get_by_id(self, id):
-        return filter_id_rev(self.db.view('releases/by_id', key=id, include_docs=True).rows[0].get('doc'))
+        res = self.db.view('releases/by_id', key=id, include_docs=True)
+        return filter_id_rev(res.rows[0].get('doc')) if res else None
 
     def get_by_ocid(self, ocid):
-        return filter_id_rev(self.db.view('releases/by_ocid', key=ocid, include_docs=True).rows[0].get('doc'))
+        res = self.db.view('releases/by_ocid', key=ocid, include_docs=True)
+        return filter_id_rev(res.rows[0].get('doc')) if res else None
 
     def get_sorted_by_date(self):
-        return self.db.iterview('releases/by_date', 1000, include_docs=True)
+        return self.db.iterview('releases/by_date_id', 1000, include_docs=True)
 
     def get_dates(self):
         start_date = next(iter(
-            self.db.view('releases/by_date',
+            self.db.view('releases/by_date_id',
                          limit=1).rows
         )).get('key')
         end_date = next(iter(
-            self.db.view('releases/by_date',
+            self.db.view('releases/by_date_id',
                          limit=1,
                          descending=True).rows
         )).get('key')
