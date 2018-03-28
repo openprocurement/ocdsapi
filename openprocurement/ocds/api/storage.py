@@ -26,10 +26,9 @@ releases_date_ocid = ViewDefinition(
 
 class ReleaseStorage(object):
 
-    def __init__(self, config):
-        server = couchdb.Server("http://{}:{}".format(config.get("host"),
-                                                      config.get("port")))
-        db_name = config.get('name', None)
+    def __init__(self, host, port, db_name):
+        server = couchdb.Server("http://{}:{}".format(host,
+                                                      port))
         if db_name in server:
             self.db = server[db_name]
         else:

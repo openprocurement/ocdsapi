@@ -24,31 +24,28 @@ test_release = {
 }
 
 
-test_config = {
-    "host": "127.0.0.1",
-    "port": "5984",
-    "name": "test"
-}
-coudb_url = 'http://{}:{}'.format(test_config.get("host"),
-                                  test_config.get("port"))
-db_name = test_config.get("name")
+DB_HOST = "127.0.0.1"
+DB_PORT = "5984"
+DB_NAME = "test"
+
+coudb_url = 'http://{}:{}'.format(DB_HOST, DB_PORT)
 SERVER = couchdb.Server(coudb_url)
 
 
 @pytest.fixture(scope='function')
 def db(request):
     def delete():
-        del SERVER[db_name]
+        del SERVER[DB_NAME]
 
-    if db_name in SERVER:
+    if DB_NAME in SERVER:
         delete()
-    SERVER.create(db_name)
+    SERVER.create(DB_NAME)
     request.addfinalizer(delete)
 
 
 @pytest.fixture(scope='function')
 def storage(request):
-    storage = ReleaseStorage(test_config)
+    storage = ReleaseStorage(DB_HOST, DB_PORT, DB_NAME)
     storage.db.save(test_release)
     return storage
 
@@ -57,10 +54,10 @@ class TestStorage(object):
 
     @pytest.mark.parametrize('storage', [ReleaseStorage])
     def test_create(self, storage):
-        if db_name in SERVER:
-            del SERVER[db_name]
-        storage = storage(test_config)
-        assert db_name in SERVER
+        if DB_NAME in SERVER:
+            del SERVER[DB_NAME]
+        storage = storage(DB_HOST, DB_PORT, DB_NAME)
+        assert DB_NAME in SERVER
 
     def test_get_by_id(self, db, storage):
         release = storage.get_by_id(test_release.get("id"))

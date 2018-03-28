@@ -10,7 +10,8 @@ install_requires = [
     'CouchDB',
     'requests',
     'Flask',
-    'ocdsmerge==0.2'
+    'ocdsmerge==0.2',
+    "gunicorn"
 ]
 
 test_requires = [
@@ -19,9 +20,9 @@ test_requires = [
 ]
 
 entry_points = {
-    'console_scripts': [
-        'runserver = openprocurement.ocds.api.app:run'
-    ]
+    'paste.app_factory': [
+        'api_server = openprocurement.ocds.api.app:run',
+    ],
 }
 
 setup(name='openprocurement.ocds.api',

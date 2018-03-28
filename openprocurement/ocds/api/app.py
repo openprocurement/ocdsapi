@@ -156,9 +156,9 @@ def create_app():
     return app
 
 
-def run():
-    args = parse_args()
-    config = read_config(args.config)
-    REGISTRY['storage'] = ReleaseStorage(config.get('db'))
+def run(config, **kwargs):
+    REGISTRY['storage'] = ReleaseStorage(kwargs.get("couch_host"),
+                                         kwargs.get("couch_port"),
+                                         kwargs.get("releases_db"))
     app = create_app()
-    app.run()
+    return app
