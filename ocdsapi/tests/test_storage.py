@@ -1,6 +1,6 @@
 import pytest
 import couchdb
-from openprocurement.ocds.api.storage import (
+from ocdsapi.storage import (
     ReleaseStorage
 )
 from copy import deepcopy
@@ -52,7 +52,7 @@ def storage(request):
 
 class TestStorage(object):
 
-    @pytest.mark.parametrize('storage', [ReleaseStorage])
+    #@pytest.mark.parametrize('storage', [ReleaseStorage])
     def test_create(self, storage):
         if DB_NAME in SERVER:
             del SERVER[DB_NAME]

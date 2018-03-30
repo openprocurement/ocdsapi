@@ -11,7 +11,9 @@ install_requires = [
     'requests',
     'Flask',
     'ocdsmerge==0.2',
-    "gunicorn"
+    "gunicorn",
+    'pyyaml',
+    'iso8601'
 ]
 
 test_requires = [
@@ -19,23 +21,25 @@ test_requires = [
     "pytest-flask"
 ]
 
+extra = install_requires + test_requires
+
 entry_points = {
     'paste.app_factory': [
-        'api_server = openprocurement.ocds.api.app:run',
+        'api_server = ocdsapi.app:run',
     ],
 }
 
-setup(name='openprocurement.ocds.api',
+setup(name='ocdsapi',
       version='0.1.0',
       description=DESCRIPTION,
       author='Quintagroup, Ltd.',
       author_email='info@quintagroup.com',
       license='Apache License 2.0',
       include_package_data=True,
-      namespace_packages=['openprocurement', 'openprocurement.ocds'],
-      packages=find_packages(exclude=['ez_setup']),
+      packages=find_packages(),
       zip_safe=False,
       install_requires=install_requires,
+      extras_require={"test": extra},
       tests_require=test_requires,
       entry_points=entry_points
       )

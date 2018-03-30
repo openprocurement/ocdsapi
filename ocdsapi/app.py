@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, abort
-from openprocurement.ocds.api.storage import ReleaseStorage
-from openprocurement.ocds.api.utils import (
+from ocdsapi.storage import ReleaseStorage
+from ocdsapi.utils import (
     parse_args,
     read_config,
     form_next_date,

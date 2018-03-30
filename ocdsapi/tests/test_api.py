@@ -2,10 +2,10 @@ import pytest
 import couchdb
 from iso8601 import parse_date
 from datetime import timedelta
-from openprocurement.ocds.api.storage import (
+from ocdsapi.storage import (
     ReleaseStorage
 )
-from openprocurement.ocds.api.app import (
+from ocdsapi.app import (
     create_app,
     REGISTRY
 )

@@ -1,6 +1,6 @@
 import couchdb
 from couchdb.design import ViewDefinition
-from openprocurement.ocds.api.utils import filter_id_rev
+from ocdsapi.utils import filter_id_rev
 
 
 releases_ocid = ViewDefinition(

@@ -1,5 +1,5 @@
 from iso8601 import parse_date
-from openprocurement.ocds.api.utils import (
+from ocdsapi.utils import (
     form_next_date,
     form_record,
     filter_id_rev
