@@ -1,0 +1,90 @@
+from flask import request, url_for
+from flask_restful import Resource, reqparse, abort
+from iso8601 import parse_date
+
+
+collection_options = reqparse.RequestParser()
+collection_options.add_argument("idsOnly", type=bool)
+collection_options.add_argument("page", type=str)
+collection_options.add_argument("packageURL", type=str)
+collection_options.add_argument("releaseID", type=str)
+
+release_options = reqparse.RequestParser()
+release_options.add_argument(
+    "releaseID",
+    type=str,
+    required=True,
+    help="Provide valid releaseID"
+    )
+release_options.add_argument("packageURL", type=str)
+release_options.add_argument("ocid", type=str)
+
+
+class ReleaseResource(Resource):
+    def __init__(self, **kw):
+        self.db = kw.get('db')
+
+    def get(self):
+        request_args = release_options.parse_args()
+        return self.db.get_id(request_args.releaseID)
+
+
+class ReleasesResource(Resource):
+
+    def __init__(self, **kw):
+        self.db = kw.get('db')
+        self.pager = kw.get('paginator')
+    
+    def filter_release_id(self, data, release_id):
+        if release_id:
+            return [
+                item for item in data
+                if item == release_id
+            ]
+        return data
+
+    def get(self):
+        request_args = collection_options.parse_args()
+        if request_args.page:
+            start_date, end_date = self.pager.decode_page(request_args.page)
+        else:
+            start_date, end_date = self.pager.prepare_initial_offset()
+        next_params = self.pager.prepare_next(end_date)
+        if request_args.idsOnly:
+            result = {
+                'releases': self.filter_release_id(
+                    self.db.ids_inside(start_date, end_date),
+                    request_args.releaseID
+                    )
+            }
+        else:
+            result = {
+                'releases': [
+                    "{}{}".format(request.url_root.strip('/'), url_for('release.json', releaseID=id))
+                    for id in self.filter_release_id(
+                        self.db.ids_inside(start_date, end_date),
+                        request_args.releaseID
+                        )
+                ]
+            }
+        result['next'] = next_params
+        if request_args.page:
+            prev = self.pager.prepare_prev(request_args.page)
+            if prev:
+                result['prev'] = prev
+        return result
+
+
+def include(api, **kw):
+    api.add_resource(
+        ReleasesResource, 
+        '/releases.json',
+        endpoint='releases.json',
+        resource_class_kwargs=kw
+    )
+    api.add_resource(
+        ReleaseResource,
+        '/release.json',
+        endpoint='release.json',
+        resource_class_kwargs=kw
+    )

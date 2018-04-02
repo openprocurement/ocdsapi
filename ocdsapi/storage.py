@@ -1,26 +1,18 @@
+import arrow
 import couchdb
+from iso8601 import parse_date
 from couchdb.design import ViewDefinition
-from ocdsapi.utils import filter_id_rev
+from ocdsapi.utils import prepare_responce_doc
 
 
 releases_ocid = ViewDefinition(
-    'releases', 'by_ocid',
-    map_fun=u"""function(doc) {emit(doc.ocid);}"""
+    'releases', 'id_index',
+    map_fun=u"""function(doc) {emit([doc._id, doc.ocid], doc.date);}"""
 )
 
 releases_id = ViewDefinition(
-    'releases', 'by_id',
-    map_fun=u"""function(doc) {emit(doc._id);}"""
-)
-
-releases_date_id = ViewDefinition(
-    'releases', 'by_date_id',
-    map_fun=u"""function(doc) {emit(doc.date, doc._id);}"""
-)
-
-releases_date_ocid = ViewDefinition(
-    'releases', 'by_date_ocid',
-    map_fun=u"""function(doc) {emit(doc.date, doc.ocid);}"""
+    'releases', 'date_index',
+    map_fun=u"""function(doc) {emit([doc.date, doc._id], doc.ocid);}"""
 )
 
 
@@ -34,43 +26,67 @@ class ReleaseStorage(object):
         else:
             self.db = server.create(db_name)
         ViewDefinition.sync_many(self.db, [releases_ocid,
-                                           releases_id,
-                                           releases_date_id,
-                                           releases_date_ocid])
+                                           releases_id,])
 
-    def get_by_id(self, id):
-        res = self.db.view('releases/by_id', key=id, include_docs=True)
-        return filter_id_rev(res.rows[0].get('doc')) if res else None
+    def _by_id(self, _filter):
+        
+        responce = self.db.view(
+            'releases/id_index',
+            startkey=_filter,
+            include_docs=True,
+            limit=1
+            )
+        if responce.rows:
+            for row in responce.rows:
+                doc = row.get('doc')
+                if doc:
+                    return prepare_responce_doc(doc)
+        return ""
 
-    def get_by_ocid(self, ocid):
-        res = self.db.view('releases/by_ocid', key=ocid, include_docs=True)
-        return filter_id_rev(res.rows[0].get('doc')) if res else None
+    def get_id(self, id):
+        return self._by_id((id, ""))
 
-    def get_sorted_by_date(self):
-        return self.db.iterview('releases/by_date_id', 1000, include_docs=True)
+    def get_ocid(self, ocid):
+        return self._by_id(("", ocid))
 
-    def get_dates(self):
-        start_date = next(iter(
-            self.db.view('releases/by_date_id',
-                         limit=1).rows
-        )).get('key')
-        end_date = next(iter(
-            self.db.view('releases/by_date_id',
-                         limit=1,
-                         descending=True).rows
-        )).get('key')
-        return start_date.split('T')[0], end_date.split('T')[0]
+    def _by_date(self, **kw):
+        for item in self.db.view(
+                'releases/date_index',
+                **kw
+                ):
+            key = item.get('key')
+            if key:
+                return arrow.get(key[0]).format("YYYY-MM-DD")
+    
+    def min_date(self):
+        return self._by_date(limit=1)
+        
+    def max_date(self):
+        return self._by_date(
+            limit=1,
+            descending=True
+            )
 
-    def get_all_ids_between_dates(self, start_date, end_date):
-        return self.db.iterview('releases/by_date_id',
-                                1000,
-                                startkey=start_date,
-                                endkey=end_date,
-                                include_docs=True)
+    def get_window(self):
+        return (self.min_date(), self.max_date())
+    
+    def _inside(self, start_date, end_date):
+        return self.db.iterview(
+            'releases/date_index',
+            1000,
+            startkey=(parse_date(start_date).isoformat(), ""),
+            endkey=(parse_date(end_date).isoformat(), ""),
+            include_docs=True)
 
-    def get_all_ocids_between_dates(self, start_date, end_date):
-        return self.db.iterview('releases/by_date_ocid',
-                                1000,
-                                startkey=start_date,
-                                endkey=end_date,
-                                include_docs=True)
+    def ids_inside(self, start_date="", end_date=""):
+        return [
+            item.get('key')[1]
+            if item else ""
+            for item in self._inside(start_date, end_date)
+        ]
+
+    def ocids_inside(self, start_date, end_date):
+        return [
+            row.value
+            for row in self._inside(start_date, end_date)
+        ]

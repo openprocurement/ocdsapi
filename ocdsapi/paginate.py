@@ -1,9 +1,7 @@
 from flask import current_app as app, url_for
 from flask import request, abort
 
-import base64
 import arrow
-from codecs import encode, decode
 from datetime import timedelta
 
 

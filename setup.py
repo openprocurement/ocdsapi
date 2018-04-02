@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 DESCRIPTION = """
-    Library for generating building OCDS API
+    Application for serving OCDS releases
 """
 
 
@@ -10,9 +10,10 @@ install_requires = [
     'CouchDB',
     'requests',
     'Flask',
+    'flask-restful',
+    'arrow',
     'ocdsmerge==0.2',
     "gunicorn",
-    'pyyaml',
     'iso8601'
 ]
 
@@ -25,8 +26,11 @@ extra = install_requires + test_requires
 
 entry_points = {
     'paste.app_factory': [
-        'api_server = ocdsapi.app:run',
+        'main = ocdsapi.app:create_app',
     ],
+    'ocdsapi.resources': [
+        'releases = ocdsapi.resources:include',
+    ]
 }
 
 setup(name='ocdsapi',

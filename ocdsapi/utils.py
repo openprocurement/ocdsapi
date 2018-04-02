@@ -2,21 +2,7 @@ import argparse
 import yaml
 from iso8601 import parse_date
 from datetime import timedelta
-import ocdsmerge
-
-
-def read_config(path):
-    with open(path) as cfg:
-        config = yaml.load(cfg)
-    return config
-
-
-def parse_args():
-    parser = argparse.ArgumentParser('Release Packages')
-    parser.add_argument('-c', '--config',
-                        required=True,
-                        help="Path to configuration file")
-    return parser.parse_args()
+#import ocdsmerge
 
 
 def form_next_date(start_date, page=None):
@@ -76,11 +62,9 @@ def form_record(releases):
     return record
 
 
-def filter_id_rev(doc):
-    if '_id' in doc:
-        del doc['_id']
-    if "_rev" in doc:
-        del doc['_rev']
+def prepare_responce_doc(doc):
+    doc.pop('_rev')
+    doc['id'] = doc.pop('_id')
     return doc
 
 
