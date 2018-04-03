@@ -2,13 +2,13 @@ from flask import Flask
 from flask_restful import Api
 from ocdsapi.storage import ReleaseStorage
 from ocdsapi.paginate import PaginationHelper
+from ocdsapi.utils import build_meta
 
 
 from pkg_resources import iter_entry_points
 
 
 def create_app(global_config, **options):
-
     app = Flask('ocdsapi')
     app.config['DEBUG'] = options.get('debug', False)
     api = Api(app)
@@ -17,10 +17,15 @@ def create_app(global_config, **options):
         options.get('couchdb_port'),
         options.get('couchdb_dbname')
     )
-    paginator = PaginationHelper(db)
+
+    app.config['metainfo'] = build_meta(options)
     for plugin in iter_entry_points('ocdsapi.resources'):
         includeme = plugin.load()
-        includeme(api, db=db, paginator=paginator)
+        includeme(
+            api,
+            db=db,
+            paginator=PaginationHelper(db)
+            )
     return app
 
 

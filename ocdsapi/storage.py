@@ -76,7 +76,8 @@ class ReleaseStorage(object):
             1000,
             startkey=(parse_date(start_date).isoformat(), ""),
             endkey=(parse_date(end_date).isoformat(), ""),
-            include_docs=True)
+            include_docs=True
+            )
 
     def ids_inside(self, start_date="", end_date=""):
         return [

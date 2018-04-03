@@ -1,6 +1,7 @@
-from flask import request, url_for
-from flask_restful import Resource, reqparse, abort
+from flask import request, url_for, current_app as app
+from flask_restful import Resource, reqparse, abort, marshal
 from iso8601 import parse_date
+from ocdsapi.marshal import releases
 
 
 collection_options = reqparse.RequestParser()
@@ -16,8 +17,8 @@ release_options.add_argument(
     required=True,
     help="Provide valid releaseID"
     )
-release_options.add_argument("packageURL", type=str)
-release_options.add_argument("ocid", type=str)
+# release_options.add_argument("packageURL", type=str)  # TODO:
+# release_options.add_argument("ocid", type=str)
 
 
 class ReleaseResource(Resource):
@@ -27,6 +28,13 @@ class ReleaseResource(Resource):
     def get(self):
         request_args = release_options.parse_args()
         return self.db.get_id(request_args.releaseID)
+        # TODO: 
+        #if not any((request_args.releaseID, request_args.ocid)):
+        #    return abort(404)
+        #if request_args.releaseID:
+        #    return self.db.get_id(request_args.releaseID)
+        #else:
+        #    return self.db.get_ocid(request_args.ocid)
 
 
 class ReleasesResource(Resource):
@@ -43,36 +51,53 @@ class ReleasesResource(Resource):
             ]
         return data
 
-    def get(self):
-        request_args = collection_options.parse_args()
-        if request_args.page:
-            start_date, end_date = self.pager.decode_page(request_args.page)
+    def _prepare_links(self, page):
+        links = {}
+        if page:
+            start_date, end_date = self.pager.decode_page(
+                page
+                )
+            prev = self.pager.prepare_prev(page)
+            if prev:
+                links['prev'] = prev
         else:
             start_date, end_date = self.pager.prepare_initial_offset()
         next_params = self.pager.prepare_next(end_date)
+        links['next'] = next_params
+        return (
+            start_date,
+            end_date,
+            links
+        )
+
+    def get(self):
+        request_args = collection_options.parse_args()
+        start_date, end_date, links = self._prepare_links(
+            request_args.page
+            )
+        result = {}
+        result.update(app.config['metainfo'])
+        result['publishedDate'] = end_date
+        result['links'] = links
+        fields = releases(result)
         if request_args.idsOnly:
-            result = {
-                'releases': self.filter_release_id(
+            result['releases'] = self.filter_release_id(
                     self.db.ids_inside(start_date, end_date),
                     request_args.releaseID
                     )
-            }
         else:
-            result = {
-                'releases': [
-                    "{}{}".format(request.url_root.strip('/'), url_for('release.json', releaseID=id))
+            result['releases'] = [
+                    "{}{}".format(
+                        request.url_root.strip('/'),
+                        url_for('release.json', releaseID=id)
+                        )
                     for id in self.filter_release_id(
                         self.db.ids_inside(start_date, end_date),
                         request_args.releaseID
                         )
                 ]
-            }
-        result['next'] = next_params
-        if request_args.page:
-            prev = self.pager.prepare_prev(request_args.page)
-            if prev:
-                result['prev'] = prev
-        return result
+        
+        return marshal(result, fields)
 
 
 def include(api, **kw):

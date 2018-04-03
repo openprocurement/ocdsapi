@@ -78,3 +78,13 @@ def get_records_list(request, start_date, end_date, db):
         return [single_rel_url.format(request.url_root, doc.value)
                 for doc in db.get_all_ocids_between_dates(start_date,
                                                           end_date)]
+
+
+def build_meta(options):
+    return {
+        'publisher': {
+            'name': options.get('publisher.name', ''),
+        },
+        'license': options.get('license', ''),
+        'publicationPolicy': options.get('publicationPolicy', '')
+    }
