@@ -14,6 +14,7 @@ install_requires = [
     'arrow',
     'ocdsmerge==0.2',
     "gunicorn",
+    'pastedeploy',
     'iso8601'
 ]
 
