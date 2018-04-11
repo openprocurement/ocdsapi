@@ -28,13 +28,13 @@ class ReleaseStorage(object):
         ViewDefinition.sync_many(self.db, [releases_ocid,
                                            releases_id,])
 
-    def _by_id(self, _filter):
-        
+    def _by_id(self, startkey, endkey):
         responce = self.db.view(
             'releases/id_index',
-            startkey=_filter,
+            startkey=startkey,
+            endkey=endkey,
             include_docs=True,
-            limit=1
+            limit=1,
             )
         if responce.rows:
             for row in responce.rows:
@@ -44,10 +44,14 @@ class ReleaseStorage(object):
         return ""
 
     def get_id(self, id):
-        return self._by_id((id, ""))
+        startkey = (id, '')
+        endkey = (id, 'xxxxxxxxxxx')
+        return self._by_id(startkey, endkey)
 
     def get_ocid(self, ocid):
-        return self._by_id(("", ocid))
+        startkey = ('', ocid)
+        endkey = ('xxxxxxxxxxx', ocid)
+        return self._by_id(startkey, endkey)
 
     def _by_date(self, **kw):
         for item in self.db.view(
@@ -76,7 +80,6 @@ class ReleaseStorage(object):
             1000,
             startkey=(parse_date(start_date).isoformat(), ""),
             endkey=(parse_date(end_date).isoformat(), ""),
-            include_docs=True
             )
 
     def ids_inside(self, start_date="", end_date=""):

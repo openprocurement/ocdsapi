@@ -1,4 +1,4 @@
-from flask import request, url_for, current_app as app
+from flask import request, url_for, current_app as app, abort
 from flask_restful import Resource, reqparse, abort, marshal
 from iso8601 import parse_date
 from ocdsapi.marshal import releases
@@ -27,7 +27,10 @@ class ReleaseResource(Resource):
 
     def get(self):
         request_args = release_options.parse_args()
-        return self.db.get_id(request_args.releaseID)
+        doc = self.db.get_id(request_args.releaseID)
+        if doc:
+            return doc
+        return abort(404)
         # TODO: 
         #if not any((request_args.releaseID, request_args.ocid)):
         #    return abort(404)

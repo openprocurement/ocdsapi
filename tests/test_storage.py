@@ -24,7 +24,7 @@ test_release = {
 }
 
 
-DB_HOST = "127.0.0.1"
+DB_HOST = "admin:admin@127.0.0.1"
 DB_PORT = "5984"
 DB_NAME = "test"
 
@@ -56,36 +56,37 @@ class TestStorage(object):
     def test_create(self, storage):
         if DB_NAME in SERVER:
             del SERVER[DB_NAME]
-        storage = storage(DB_HOST, DB_PORT, DB_NAME)
+        storage = ReleaseStorage(DB_HOST, DB_PORT, DB_NAME)
         assert DB_NAME in SERVER
 
     def test_get_by_id(self, db, storage):
-        release = storage.get_by_id(test_release.get("id"))
+        release = storage.get_id(test_release.get("id"))
         assert release
         assert "_id" not in release
         assert "_rev" not in release
 
     def test_get_by_ocid(self, db, storage):
-        release = storage.get_by_ocid(test_release.get("ocid"))
+        release = storage.get_ocid(test_release.get("ocid"))
         assert release
+        assert release['tender'] == test_release['tender']
         assert "_id" not in release
         assert "_rev" not in release
 
-    def test_get_sorted_by_date(self, db, storage):
-        test_release['date'] = '2017-01-02'
-        test_release['_id'] = 'test_id1'
-        storage.db.save(test_release)
-        for item, id in zip(storage.get_sorted_by_date(), ['test_id', "test_id1"]):
-            assert item.value == id
+    # def test_get_sorted_by_date(self, db, storage):
+    #     test_release['date'] = '2017-01-02'
+    #     test_release['_id'] = 'test_id1'
+    #     storage.db.save(test_release)
+    #     for item, id in zip(storage.get_sorted_by_date(), ['test_id', "test_id1"]):
+    #         assert item.value == id
 
     def test_get_dates(self, db, storage):
-        dates = storage.get_dates()
+        dates = storage.get_window()
         assert dates[0] == test_release['date']
         small_date = '2016-01-01'
         test_release['date'] = small_date
         test_release['_id'] = 'test1'
         storage.db.save(test_release)
-        dates = storage.get_dates()
+        dates = storage.get_window()
         assert dates[0] == small_date
 
     def test_get_all_ids_between_dates(self, db, storage):
@@ -99,12 +100,9 @@ class TestStorage(object):
         release2['date'] = date2
         release2['_id'] = 'test2'
         storage.db.save(release2)
-        result = list(storage.get_all_ids_between_dates(date1, date2))
-        assert len(result) == 2
-        assert result[0]['id'] == 'test1'
-        assert result[1]['id'] == 'test2'
-        assert result[0].doc['date'] == date1
-        assert result[1].doc['date'] == date2
+        result = list(storage.ids_inside(date1, date2))
+        assert len(result) == 1
+        assert result[0] == 'test2'
 
     def test_get_all_ocids_between_dates(self, db, storage):
         date1 = '2016-01-01'
@@ -119,9 +117,6 @@ class TestStorage(object):
         release2['_id'] = 'test2'
         release2['ocid'] = 'ocid2'
         storage.db.save(release2)
-        result = list(storage.get_all_ocids_between_dates(date1, date2))
-        assert len(result) == 2
-        assert result[0].doc['ocid'] == 'ocid1'
-        assert result[1].doc['ocid'] == 'ocid2'
-        assert result[0].doc['date'] == date1
-        assert result[1].doc['date'] == date2
+        result = list(storage.ocids_inside(date1, date2))
+        assert len(result) == 1
+        assert result[0] == 'ocid2'
