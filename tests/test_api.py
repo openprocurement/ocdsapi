@@ -29,11 +29,12 @@ DB_HOST = "admin:admin@127.0.0.1"
 DB_PORT = "5984"
 DB_NAME = "test"
 coudb_url = 'http://{}:{}'.format(DB_HOST, DB_PORT)
-SERVER = couchdb.Server(coudb_url)
+
 
 
 @pytest.fixture(scope='function')
 def db(request):
+    SERVER = couchdb.Server(coudb_url)
     def delete():
         del SERVER[DB_NAME]
 

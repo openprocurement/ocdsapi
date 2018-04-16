@@ -1,8 +1,16 @@
 import arrow
 import couchdb
+import logging
+from multiprocessing import Value
+from datetime import timedelta, datetime, timezone
 from iso8601 import parse_date
 from couchdb.design import ViewDefinition
 from ocdsapi.utils import prepare_responce_doc
+from repoze.lru import lru_cache, LRUCache
+from .paginate import PaginationHelper
+from gevent import pool, spawn, sleep
+from time import time
+
 
 
 releases_ocid = ViewDefinition(
@@ -14,19 +22,68 @@ releases_id = ViewDefinition(
     'releases', 'date_index',
     map_fun=u"""function(doc) {emit([doc.date, doc._id], doc.ocid);}"""
 )
+LOGGER = logging.getLogger("")
+WATCHER = Value('i', 0)
+DAY = 86400
 
 
 class ReleaseStorage(object):
 
-    def __init__(self, host, port, db_name):
+    def __init__(self, host, port, db_name, cache=None):
         server = couchdb.Server("http://{}:{}".format(host,
                                                       port))
         if db_name in server:
             self.db = server[db_name]
         else:
             self.db = server.create(db_name)
-        ViewDefinition.sync_many(self.db, [releases_ocid,
-                                           releases_id,])
+
+        ViewDefinition.sync_many(
+            self.db,
+            [releases_ocid, releases_id]
+            )
+        LOGGER.info("Starting storage: {}".format(
+            self.db.info()
+        ))
+        if cache:
+            LOGGER.warn("Starting caching")
+            self.cache = LRUCache(cache)
+            self._inside = lru_cache(maxsize=cache, cache=self.cache)(self._inside)
+            self.build_cache()
+            with WATCHER.get_lock():
+                if WATCHER.value == 0:
+                    self.w = spawn(self.watcher)
+                    WATCHER.value = 1
+
+    def watcher(self):
+        """cache updater
+        """
+        sleep(DAY)
+        while 1:
+            self.cache.clear()
+            LOGGER.info("Cache invalidated. Started to build new")
+            self.build_cache()
+            sleep(DAY)
+
+    def build_cache(self):
+
+        def cache_page(start, end):
+            LOGGER.debug("Caching page {} -- {}".format(start, end))
+            self._inside(start, end)
+
+        min_date = self.min_date()
+        _pool = pool.Pool(200)
+        delta = timedelta(days=1)
+        while arrow.get(min_date).datetime < datetime.now(timezone.utc):
+            next_date = PaginationHelper.format(
+                arrow.get(min_date) + delta
+                )
+            _pool.spawn(cache_page, min_date, next_date)
+            min_date = next_date
+        _pool.join()
+        LOGGER.info("Caching done")
+        LOGGER.info(
+            "Cache size: {} items".format(len(self.cache.data))
+        )
 
     def _by_id(self, startkey, endkey):
         responce = self.db.view(
@@ -50,7 +107,7 @@ class ReleaseStorage(object):
 
     def get_ocid(self, ocid):
         startkey = ('', ocid)
-        endkey = ('xxxxxxxxxxx', ocid)
+        endkey = ('x' * 33, ocid)
         return self._by_id(startkey, endkey)
 
     def _by_date(self, **kw):
@@ -75,9 +132,8 @@ class ReleaseStorage(object):
         return (self.min_date(), self.max_date())
     
     def _inside(self, start_date, end_date):
-        return self.db.iterview(
+        return self.db.view(
             'releases/date_index',
-            1000,
             startkey=(parse_date(start_date).isoformat(), ""),
             endkey=(parse_date(end_date).isoformat(), ""),
             )

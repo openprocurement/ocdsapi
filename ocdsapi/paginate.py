@@ -20,6 +20,7 @@ class PaginationHelper(object):
     def _get_min(self):
         return arrow.get(self.db.min_date())
 
+    @classmethod
     def format(self, date):
         return date.format("YYYY-MM-DD")
     

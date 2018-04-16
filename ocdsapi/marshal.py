@@ -27,7 +27,7 @@ def releases(data):
         return {
             'publisher': fields.Nested(publisher),
             'releases': fields.Raw,
-            'uri': fields.Url,
+            'uri': fields.String,
             'publishedDate': fields.String(attribute='publishedDate'),
             'license': fields.String(attribute='license'),
             'publicationPolicy': fields.String(),

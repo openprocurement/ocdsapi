@@ -1,3 +1,5 @@
+from gevent import monkey; monkey.patch_all()
+
 from flask import Flask
 from flask_restful import Api
 from ocdsapi.storage import ReleaseStorage
@@ -15,7 +17,8 @@ def create_app(global_config, **options):
     db = ReleaseStorage(
         options.get('couchdb_host'),
         options.get('couchdb_port'),
-        options.get('couchdb_dbname')
+        options.get('couchdb_dbname'),
+        cache=options.get('cache')
     )
 
     app.config['metainfo'] = build_meta(options)

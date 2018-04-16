@@ -82,6 +82,7 @@ class ReleasesResource(Resource):
         result.update(app.config['metainfo'])
         result['publishedDate'] = end_date
         result['links'] = links
+        result['uri'] = request.full_path
         fields = releases(result)
         if request_args.idsOnly:
             result['releases'] = self.filter_release_id(

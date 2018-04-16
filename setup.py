@@ -15,7 +15,9 @@ install_requires = [
     'ocdsmerge==0.2',
     "gunicorn",
     'pastedeploy',
-    'iso8601'
+    'iso8601',
+    'gevent',
+    'repoze.lru'
 ]
 
 test_requires = [
