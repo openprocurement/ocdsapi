@@ -20,7 +20,8 @@ install_requires = [
 
 test_requires = [
     'pytest',
-    "pytest-flask"
+    "pytest-flask",
+    'pytest-cov'
 ]
 
 extra = install_requires + test_requires
