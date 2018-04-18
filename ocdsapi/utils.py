@@ -90,3 +90,10 @@ def build_meta(options):
         'license': options.get('license', ''),
         'publicationPolicy': options.get('publicationPolicy', '')
     }
+
+
+def get_or_create_db(server, name):
+    if name not in server:
+        server.create(name)
+    return server[name]
+    

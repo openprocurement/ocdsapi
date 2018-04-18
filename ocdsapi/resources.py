@@ -1,7 +1,12 @@
-from flask import request, url_for, current_app as app, abort
-from flask_restful import Resource, reqparse, abort, marshal
+from urllib.parse import urljoin
+from datetime import timedelta
+from flask import current_app as app
+from flask import url_for, request
+from flask_restful import Resource, reqparse, marshal, abort
 from iso8601 import parse_date
+from repoze.lru import lru_cache
 from ocdsapi.marshal import releases
+from .paginate import PaginationHelper
 
 
 collection_options = reqparse.RequestParser()
@@ -54,18 +59,19 @@ class ReleasesResource(Resource):
             ]
         return data
 
+    @lru_cache(maxsize=1000)
     def _prepare_links(self, page):
         links = {}
         if page:
             start_date, end_date = self.pager.decode_page(
                 page
                 )
-            prev = self.pager.prepare_prev(page)
+            prev = self.pager.prev_url(start_date)
             if prev:
                 links['prev'] = prev
         else:
             start_date, end_date = self.pager.prepare_initial_offset()
-        next_params = self.pager.prepare_next(end_date)
+        next_params = self.pager.next_url(end_date)
         links['next'] = next_params
         return (
             start_date,
@@ -78,20 +84,22 @@ class ReleasesResource(Resource):
         start_date, end_date, links = self._prepare_links(
             request_args.page
             )
-        result = {}
-        result.update(app.config['metainfo'])
-        result['publishedDate'] = end_date
-        result['links'] = links
-        result['uri'] = request.full_path
+        result = {
+            'publishedDate': end_date,
+            'links': links,
+            'uri': request.full_path,
+            **app.config['metainfo']
+        }
         fields = releases(result)
+            
         if request_args.idsOnly:
             result['releases'] = self.filter_release_id(
-                    self.db.ids_inside(start_date, end_date),
-                    request_args.releaseID
-                    )
+                self.db.ids_inside(start_date, end_date),
+                request_args.releaseID
+            )
         else:
             result['releases'] = [
-                    "{}{}".format(
+                    urljoin(
                         request.url_root.strip('/'),
                         url_for('release.json', releaseID=id)
                         )

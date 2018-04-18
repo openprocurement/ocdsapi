@@ -1,7 +1,7 @@
 import arrow
 import couchdb
 import logging
-from multiprocessing import Value
+import sys
 from datetime import timedelta, datetime, timezone
 from iso8601 import parse_date
 from couchdb.design import ViewDefinition
@@ -10,6 +10,7 @@ from repoze.lru import lru_cache, LRUCache
 from .paginate import PaginationHelper
 from gevent import pool, spawn, sleep
 from time import time
+from .utils import get_or_create_db
 
 
 
@@ -22,20 +23,17 @@ releases_id = ViewDefinition(
     'releases', 'date_index',
     map_fun=u"""function(doc) {emit([doc.date, doc._id], doc.ocid);}"""
 )
-LOGGER = logging.getLogger("")
-WATCHER = Value('i', 0)
+LOGGER = logging.getLogger("ocdsapi")
 DAY = 86400
 
 
 class ReleaseStorage(object):
 
     def __init__(self, host, port, db_name, cache=None):
-        server = couchdb.Server("http://{}:{}".format(host,
-                                                      port))
-        if db_name in server:
-            self.db = server[db_name]
-        else:
-            self.db = server.create(db_name)
+        server = couchdb.Server(
+            "http://{}:{}".format(host, port)
+            )
+        self.db = get_or_create_db(server, db_name)
 
         ViewDefinition.sync_many(
             self.db,
@@ -48,11 +46,10 @@ class ReleaseStorage(object):
             LOGGER.warn("Starting caching")
             self.cache = LRUCache(cache)
             self._inside = lru_cache(maxsize=cache, cache=self.cache)(self._inside)
+            self._by_date = lru_cache(maxsize=cache, cache=self.cache)(self._by_date)
+            self.min_date()
             self.build_cache()
-            with WATCHER.get_lock():
-                if WATCHER.value == 0:
-                    self.w = spawn(self.watcher)
-                    WATCHER.value = 1
+            self.w = spawn(self.watcher)
 
     def watcher(self):
         """cache updater
@@ -82,7 +79,10 @@ class ReleaseStorage(object):
         _pool.join()
         LOGGER.info("Caching done")
         LOGGER.info(
-            "Cache size: {} items".format(len(self.cache.data))
+            "Cache size: {0:.2f} kb with {1} items".format(
+                sys.getsizeof(self.cache.data)/1024,
+                len(self.cache.data)
+                )
         )
 
     def _by_id(self, startkey, endkey):
@@ -120,12 +120,14 @@ class ReleaseStorage(object):
                 return arrow.get(key[0]).format("YYYY-MM-DD")
     
     def min_date(self):
-        return self._by_date(limit=1)
+        return self._by_date(
+            limit=1,
+            )
         
     def max_date(self):
         return self._by_date(
             limit=1,
-            descending=True
+            descending=True,
             )
 
     def get_window(self):
