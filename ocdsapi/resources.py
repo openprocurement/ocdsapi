@@ -1,3 +1,4 @@
+import arrow
 from urllib.parse import urljoin
 from datetime import timedelta
 from flask import current_app as app
@@ -5,8 +6,10 @@ from flask import url_for, request
 from flask_restful import Resource, reqparse, marshal, abort
 from iso8601 import parse_date
 from repoze.lru import lru_cache
-from ocdsapi.marshal import releases
+from .marshal import releases
 from .paginate import PaginationHelper
+
+
 
 
 collection_options = reqparse.RequestParser()
@@ -50,6 +53,8 @@ class ReleasesResource(Resource):
     def __init__(self, **kw):
         self.db = kw.get('db')
         self.pager = kw.get('paginator')
+        self.skip_empty = kw.get('skip_empty')
+        self.kw = kw
     
     def filter_release_id(self, data, release_id):
         if release_id:
@@ -59,6 +64,38 @@ class ReleasesResource(Resource):
             ]
         return data
 
+    def prepare_prev_url(self, start_date, end_date):
+        if self.skip_empty:
+            cache = self.db.cache
+            result = ''
+            while True:
+                end_date = start_date
+                start_date = PaginationHelper.format(arrow.get(end_date) - timedelta(days=1))
+                if start_date < self.db.min_date():
+                    return ""
+
+                result = cache.get((start_date, end_date)).rows
+                if result:
+                    break
+            return self.pager.prev_url(start_date)
+        else:
+            return self.pager.prev_url(start_date)
+
+    def prepare_next_url(self, start_date, end_date):
+        if self.skip_empty:
+            cache = self.db.cache
+            result = ''
+            while True:
+                start_date = end_date
+                end_date = PaginationHelper.format(arrow.get(start_date) + timedelta(days=1))
+
+                result = cache.get((start_date, end_date)).rows
+                if result:
+                    break
+            return self.pager.next_url(start_date)
+        else:
+            return self.pager.next_url(start_date)
+
     @lru_cache(maxsize=1000)
     def _prepare_links(self, page):
         links = {}
@@ -66,13 +103,12 @@ class ReleasesResource(Resource):
             start_date, end_date = self.pager.decode_page(
                 page
                 )
-            prev = self.pager.prev_url(start_date)
+            prev = self.prepare_prev_url(start_date, end_date) 
             if prev:
                 links['prev'] = prev
         else:
             start_date, end_date = self.pager.prepare_initial_offset()
-        next_params = self.pager.next_url(end_date)
-        links['next'] = next_params
+        links['next'] = self.prepare_next_url(start_date, end_date)
         return (
             start_date,
             end_date,

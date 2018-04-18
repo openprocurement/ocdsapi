@@ -27,7 +27,8 @@ def create_app(global_config, **options):
         includeme(
             api,
             db=db,
-            paginator=PaginationHelper(db)
+            paginator=PaginationHelper(db),
+            **options
             )
     return app
 
