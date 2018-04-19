@@ -74,8 +74,8 @@ class ReleasesResource(Resource):
                 if start_date < self.db.min_date():
                     return ""
 
-                result = cache.get((start_date, end_date)).rows
-                if result:
+                result = cache.get((start_date, end_date))
+                if result and result.rows:
                     break
             return self.pager.prev_url(start_date)
         else:
