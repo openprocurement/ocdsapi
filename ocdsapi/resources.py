@@ -66,35 +66,29 @@ class ReleasesResource(Resource):
 
     def prepare_prev_url(self, start_date, end_date):
         if self.skip_empty:
-            cache = self.db.cache
             result = ''
             while True:
                 end_date = start_date
                 start_date = PaginationHelper.format(arrow.get(end_date) - timedelta(days=1))
                 if start_date < self.db.min_date():
                     return ""
-
-                result = cache.get((start_date, end_date))
-                if result and result.rows:
+                result = self.db.ids_inside(start_date, end_date)
+                if result:
                     break
-            return self.pager.prev_url(start_date)
-        else:
-            return self.pager.prev_url(start_date)
+        return self.pager.prev_url(start_date)
 
     def prepare_next_url(self, start_date, end_date):
         if self.skip_empty:
-            cache = self.db.cache
             result = ''
             while True:
                 start_date = end_date
                 end_date = PaginationHelper.format(arrow.get(start_date) + timedelta(days=1))
-
-                result = cache.get((start_date, end_date)).rows
+                if end_date > self.db.max_date():
+                    ""
+                result = self.db.ids_inside(start_date, end_date)
                 if result:
                     break
-            return self.pager.next_url(start_date)
-        else:
-            return self.pager.next_url(start_date)
+        return self.pager.next_url(start_date)
 
     @lru_cache(maxsize=1000)
     def _prepare_links(self, page):
@@ -108,7 +102,9 @@ class ReleasesResource(Resource):
                 links['prev'] = prev
         else:
             start_date, end_date = self.pager.prepare_initial_offset()
-        links['next'] = self.prepare_next_url(start_date, end_date)
+        next = self.prepare_next_url(start_date, end_date)
+        if next:
+            links['next'] = next
         return (
             start_date,
             end_date,

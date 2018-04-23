@@ -18,18 +18,12 @@ def create_app(global_config, **options):
         options.get('couchdb_host'),
         options.get('couchdb_port'),
         options.get('couchdb_dbname'),
-        cache=options.get('cache')
     )
 
     app.config['metainfo'] = build_meta(options)
     for plugin in iter_entry_points('ocdsapi.resources'):
         includeme = plugin.load()
-        includeme(
-            api,
-            db=db,
-            paginator=PaginationHelper(db),
-            **options
-            )
+        includeme(api, db=db, paginator=PaginationHelper(db), **options)
     return app
 
 
