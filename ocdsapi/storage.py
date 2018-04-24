@@ -62,7 +62,6 @@ class ReleaseStorage(object):
         endkey = ('x' * 33, ocid)
         return self._by_id(startkey, endkey)
 
-    @lru_cache(maxsize=100, timeout=100)
     def _by_date(self, **kw):
         for item in self.db.view(
                 'releases/date_index',
