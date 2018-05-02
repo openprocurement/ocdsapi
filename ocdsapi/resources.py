@@ -10,8 +10,6 @@ from .marshal import releases
 from .paginate import PaginationHelper
 
 
-
-
 collection_options = reqparse.RequestParser()
 collection_options.add_argument("idsOnly", type=bool)
 collection_options.add_argument("page", type=str)

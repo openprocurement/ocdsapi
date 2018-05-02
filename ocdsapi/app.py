@@ -5,8 +5,6 @@ from flask_restful import Api
 from ocdsapi.storage import ReleaseStorage
 from ocdsapi.paginate import PaginationHelper
 from ocdsapi.utils import build_meta
-
-
 from pkg_resources import iter_entry_points
 
 
@@ -28,10 +26,10 @@ def create_app(global_config, **options):
 
 
 if __name__ == '__main__':
-    app = create_app({},
+    create_app(
+        {},
         couchdb_host='admin:admin@localhost',
         couchdb_port='5984',
         couchdb_dbname='releasedb',
         debug=True
-    )
-    app.run()
+        ).run()

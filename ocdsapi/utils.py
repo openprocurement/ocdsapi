@@ -1,10 +1,9 @@
 import argparse
-import yaml
+from datetime import timedelta
 from iso8601 import parse_date
-from datetime import timedelta, datetime
 from gevent.pool import Pool
 # from time import time
-#import ocdsmerge
+# import ocdsmerge
 
 
 def form_next_date(start_date, page=None):
