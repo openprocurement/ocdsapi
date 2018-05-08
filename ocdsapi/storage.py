@@ -72,13 +72,11 @@ class ReleaseStorage(object):
     def min_date(self):
         return self._by_date(
             limit=1,
-            startkey=("", "")
             )
         
     def max_date(self):
         return self._by_date(
             limit=1,
-            startkey=("", ""),
             descending=True,
             )
 
