@@ -20,11 +20,9 @@ release_options = reqparse.RequestParser()
 release_options.add_argument(
     "releaseID",
     type=str,
-    required=True,
-    help="Provide valid releaseID"
     )
-# release_options.add_argument("packageURL", type=str)  # TODO:
-# release_options.add_argument("ocid", type=str)
+release_options.add_argument("packageURL", type=str)  # TODO:
+release_options.add_argument("ocid", type=str)
 
 
 class ReleaseResource(Resource):
@@ -33,17 +31,16 @@ class ReleaseResource(Resource):
 
     def get(self):
         request_args = release_options.parse_args()
-        doc = self.db.get_id(request_args.releaseID)
+
+        if not any((request_args.releaseID, request_args.ocid)):
+           return abort(404)
+        if request_args.releaseID:
+            doc = self.db.get_id(request_args.releaseID)
+        elif request_args.ocid:
+            doc = self.db.get_ocid(request_args.ocid)
         if doc:
             return doc
         return abort(404)
-        # TODO: 
-        #if not any((request_args.releaseID, request_args.ocid)):
-        #    return abort(404)
-        #if request_args.releaseID:
-        #    return self.db.get_id(request_args.releaseID)
-        #else:
-        #    return self.db.get_ocid(request_args.ocid)
 
 
 class ReleasesResource(Resource):

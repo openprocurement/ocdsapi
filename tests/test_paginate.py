@@ -3,12 +3,10 @@ import couchdb
 from ocdsapi.paginate import PaginationHelper
 from ocdsapi.storage import ReleaseStorage
 
-DB_HOST = "admin:admin@127.0.0.1"
-DB_PORT = "5984"
+DB_HOST = "http://admin:admin@127.0.0.1:5984"
 DB_NAME = "test"
 
-coudb_url = 'http://{}:{}'.format(DB_HOST, DB_PORT)
-SERVER = couchdb.Server(coudb_url)
+SERVER = couchdb.Server(DB_HOST)
 test_release = {
    "_id": "test_id",
    "_rev": "1-f9da923910334137a23e6f16af78d438",
@@ -40,7 +38,7 @@ def db(request):
 
 @pytest.fixture(scope='function')
 def paginator(request):
-    storage = ReleaseStorage(DB_HOST, DB_PORT, DB_NAME)
+    storage = ReleaseStorage(DB_HOST, DB_NAME)
     storage.db.save(test_release)
 
     paginator = PaginationHelper(storage)

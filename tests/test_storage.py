@@ -24,12 +24,10 @@ test_release = {
 }
 
 
-DB_HOST = "admin:admin@127.0.0.1"
-DB_PORT = "5984"
+DB_HOST = "http://admin:admin@127.0.0.1:5984"
 DB_NAME = "test"
 
-coudb_url = 'http://{}:{}'.format(DB_HOST, DB_PORT)
-SERVER = couchdb.Server(coudb_url)
+SERVER = couchdb.Server(DB_HOST)
 
 
 @pytest.fixture(scope='function')
@@ -45,7 +43,7 @@ def db(request):
 
 @pytest.fixture(scope='function')
 def storage(request):
-    storage = ReleaseStorage(DB_HOST, DB_PORT, DB_NAME)
+    storage = ReleaseStorage(DB_HOST, DB_NAME)
     storage.db.save(test_release)
     return storage
 
@@ -56,7 +54,7 @@ class TestStorage(object):
     def test_create(self, storage):
         if DB_NAME in SERVER:
             del SERVER[DB_NAME]
-        storage = ReleaseStorage(DB_HOST, DB_PORT, DB_NAME)
+        storage = ReleaseStorage(DB_HOST, DB_NAME)
         assert DB_NAME in SERVER
 
     def test_get_by_id(self, db, storage):
