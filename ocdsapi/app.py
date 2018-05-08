@@ -13,8 +13,7 @@ def create_app(global_config, **options):
     app.config['DEBUG'] = options.get('debug', False)
     api = Api(app)
     db = ReleaseStorage(
-        options.get('couchdb_host'),
-        options.get('couchdb_port'),
+        options.get('couchdb_url'),
         options.get('couchdb_dbname'),
     )
     # import ipdb;ipdb.set_trace()

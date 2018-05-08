@@ -23,10 +23,8 @@ LOGGER = logging.getLogger("ocdsapi")
 
 class ReleaseStorage(object):
 
-    def __init__(self, host, port, db_name):
-        server = couchdb.Server(
-            "http://{}:{}".format(host, port)
-            )
+    def __init__(self, host_url, db_name):
+        server = couchdb.Server(host_url)
         self.db = get_or_create_db(server, db_name)
 
         ViewDefinition.sync_many(
