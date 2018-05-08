@@ -38,7 +38,7 @@ entry_points = {
 }
 
 setup(name='ocdsapi',
-      version='0.1.6',
+      version='0.1.7',
       description=DESCRIPTION,
       author='Quintagroup, Ltd.',
       author_email='info@quintagroup.com',
