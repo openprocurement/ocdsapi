@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
+PACKAGE = 'ocdsapi'
 DESCRIPTION = """
     Application for serving OCDS releases
 """
-
-
-install_requires = [
+VERSION = '0.1.8'
+INSTALL_REQUIRES = [
     'setuptools',
     'CouchDB',
     'requests',
@@ -17,18 +17,15 @@ install_requires = [
     'pastedeploy',
     'iso8601',
     'gevent',
-    'repoze.lru'
 ]
-
-test_requires = [
+TEST_REQUIRES = [
     'pytest',
     "pytest-flask",
     'pytest-cov'
 ]
 
-extra = install_requires + test_requires
-
-entry_points = {
+EXTRA = INSTALL_REQUIRES + TEST_REQUIRES
+ENTRY_POINTS = {
     'paste.app_factory': [
         'main = ocdsapi.app:create_app',
     ],
@@ -37,8 +34,8 @@ entry_points = {
     ]
 }
 
-setup(name='ocdsapi',
-      version='0.1.8',
+setup(name=PACKAGE,
+      version=VERSION,
       description=DESCRIPTION,
       author='Quintagroup, Ltd.',
       author_email='info@quintagroup.com',
@@ -46,8 +43,7 @@ setup(name='ocdsapi',
       include_package_data=True,
       packages=find_packages(),
       zip_safe=False,
-      install_requires=install_requires,
-      extras_require={"test": extra},
-      tests_require=test_requires,
-      entry_points=entry_points
+      install_requires=INSTALL_REQUIRES,
+      extras_require={"test": EXTRA},
+      entry_points=ENTRY_POINTS
       )
