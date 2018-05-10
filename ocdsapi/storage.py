@@ -87,7 +87,7 @@ class ReleaseStorage(object):
     def _by_limit(self, start_key, view_limit=101, **kw):
         key = parse_date(start_key).isoformat() if start_key else ""
         if key:
-            kw['startley'] = (key, "")
+            kw['startkey'] = (key, "")
         return self.db.view(
             'releases/date_index',
             limit=view_limit,
