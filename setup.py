@@ -4,7 +4,7 @@ PACKAGE = 'ocdsapi'
 DESCRIPTION = """
     Application for serving OCDS releases
 """
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 INSTALL_REQUIRES = [
     'setuptools',
     'CouchDB',
