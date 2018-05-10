@@ -3,7 +3,6 @@ import couchdb
 import logging
 import sys
 from iso8601 import parse_date
-from repoze.lru import lru_cache
 from couchdb.design import ViewDefinition
 from ocdsapi.utils import prepare_responce_doc
 from .utils import get_or_create_db
@@ -25,6 +24,8 @@ class ReleaseStorage(object):
 
     def __init__(self, host_url, db_name):
         server = couchdb.Server(host_url)
+        if server.uuids():
+            self.uid = server.uuids()[0]
         self.db = get_or_create_db(server, db_name)
 
         ViewDefinition.sync_many(
@@ -82,8 +83,29 @@ class ReleaseStorage(object):
 
     def get_window(self):
         return (self.min_date(), self.max_date())
+
+    def _by_limit(self, start_key, view_limit=101, **kw):
+        key = parse_date(start_key).isoformat() if start_key else ""
+        if key:
+            kw['startley'] = (key, "")
+        return self.db.view(
+            'releases/date_index',
+            limit=view_limit,
+            **kw
+        )
+
+    def page(self, start_date, **kw):
+        resp = self._by_limit(start_date, **kw)
+        
+        if resp and resp.rows:
+            data = [
+                (item['key'][1], item['key'][0], item.value)
+                for item in resp
+            ]
+            last = data[-1][1]
+            return last, data[:-1]
+        return ("", "")
     
-    @lru_cache(maxsize=100, timeout=100)
     def _inside(self, start_date, end_date):
         return self.db.view(
             'releases/date_index',

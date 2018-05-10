@@ -12,7 +12,7 @@ INSTALL_REQUIRES = [
     'Flask',
     'flask-restful',
     'arrow',
-    'ocdsmerge==0.2',
+    'ocdsmerge',
     "gunicorn",
     'pastedeploy',
     'iso8601',
@@ -30,7 +30,8 @@ ENTRY_POINTS = {
         'main = ocdsapi.app:create_app',
     ],
     'ocdsapi.resources': [
-        'releases = ocdsapi.resources:include',
+        'releases = ocdsapi.releases:include',
+        'records  = ocdsapi.records:include'
     ]
 }
 
