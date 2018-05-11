@@ -23,7 +23,8 @@ test_doc = {
         "status": "complete",
         "id": "test_id"
     },
-    "id": "test_id"
+    "id": "test_id",
+    "$schema": ""
 }
 DB_HOST = "http://admin:admin@127.0.0.1:5984"
 DB_NAME = "test"

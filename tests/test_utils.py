@@ -4,7 +4,7 @@ from ocdsapi.utils import (
 
 
 def test_prepare_response_doc():
-    doc = {'id': "test", "_id": "test", "_rev": "test"}
+    doc = {'id': "test", "_id": "test", "_rev": "test", "$schema": ""}
     filtered = prepare_responce_doc(doc)
     assert "_id" not in filtered
     assert "_rev" not in filtered
