@@ -15,6 +15,7 @@ def prepare_record(releases, ocid):
 
 def prepare_responce_doc(doc):
     doc.pop('_rev')
+    doc.pop('$schema')
     doc['id'] = doc.pop('_id')
     return doc
 
@@ -25,7 +26,8 @@ def build_meta(options):
             'name': options.get('publisher.name', ''),
         },
         'license': options.get('license', ''),
-        'publicationPolicy': options.get('publicationPolicy', '')
+        'publicationPolicy': options.get('publicationPolicy', ''),
+        'version': options.get('version', "1.1")
     }
 
 

@@ -15,7 +15,6 @@ def create_app(global_config, **options):
         options.get('couchdb_url'),
         options.get('couchdb_dbname'),
     )
-    # import ipdb;ipdb.set_trace()
     app.config['metainfo'] = build_meta(options)
     for plugin in iter_entry_points('ocdsapi.resources'):
         includeme = plugin.load()
@@ -24,10 +23,11 @@ def create_app(global_config, **options):
 
 
 if __name__ == '__main__':
-    create_app(
+    app = create_app(
         {},
         couchdb_host='admin:admin@localhost',
         couchdb_port='5984',
         couchdb_dbname='releasedb',
         debug=True
-        ).run()
+    )
+    app.run()

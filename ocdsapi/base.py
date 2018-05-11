@@ -8,7 +8,7 @@ class BaseCollectionResource:
     options = {}
 
     def _prepare(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def prepare_next_url(self, params):
         if params.get('descending'):
