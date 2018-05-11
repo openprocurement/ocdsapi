@@ -1,0 +1,8 @@
+language: python
+python: "3.6.5"
+services: couchdb
+install:
+  - pip install ".[test]"
+  - curl -X PUT localhost:5984/_config/admins/admin -d '"admin"'
+script:
+  - pytest tests/
