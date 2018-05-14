@@ -20,7 +20,8 @@ test_release = {
        "status": "complete",
        "id": "test_id"
    },
-   "id": "test_id"
+   "id": "test_id",
+   "$schema": ""
 }
 
 
