@@ -21,7 +21,8 @@ INSTALL_REQUIRES = [
 TEST_REQUIRES = [
     'pytest',
     "pytest-flask",
-    'pytest-cov'
+    'pytest-cov',
+    'munch',
 ]
 
 EXTRA = INSTALL_REQUIRES + TEST_REQUIRES
