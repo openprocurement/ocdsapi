@@ -1,17 +1,10 @@
 from ocdsapi.base import BaseCollectionResource
-from tests.test_api import app
+from tests.test_api import app, storage
 import pytest
-import flask
 
 @pytest.fixture
 def resource():
     return BaseCollectionResource()
-
-def test_prepare(resource):
-    try:
-        resource._prepare()
-    except Exception as exc:
-        assert isinstance(exc, NotImplementedError)
 
 def test_prepare_next_url(resource, app):
     resource.resource = 'releases.json'
@@ -21,3 +14,12 @@ def test_prepare_next_url(resource, app):
     with app.app_context(), app.test_request_context():
         url_descending = resource.prepare_next_url({'offset': 0, 'descending': True})
         assert url_descending == '/releases.json?page=0&descending=True'
+
+def test_prepare_response(client, storage):
+    with client.get('/releases.json') as response:
+        result = response.json
+        assert result['links']['next'] == 'http://localhost/releases.json?page=2017-01-01'
+    with client.get('/releases.json?page=2017-01-01&descending=True') as response:
+        result = response.json
+        assert result['links']['next'] == 'http://localhost/releases.json?page=2017-01-01&descending=True'
+        assert result['links']['prev'] == 'http://localhost/releases.json?page=2017-01-01'

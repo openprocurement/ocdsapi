@@ -45,7 +45,12 @@ def db(request):
 @pytest.fixture(scope='function')
 def storage(request):
     storage = ReleaseStorage(DB_HOST, DB_NAME)
-    storage.db.save(test_release)
+    try:
+        storage.db.save(test_release)
+    except couchdb.http.ResourceConflict:
+        pass
+    except:
+        raise
     return storage
 
 
