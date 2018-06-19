@@ -24,6 +24,8 @@ def build_meta(options):
     return {
         'publisher': {
             'name': options.get('publisher.name', ''),
+            'scheme': options.get('publisher.scheme', ''),
+            'uri': options.get('uri', '')
         },
         'license': options.get('license', ''),
         'publicationPolicy': options.get('publicationPolicy', ''),

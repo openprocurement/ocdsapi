@@ -24,8 +24,6 @@ class ReleaseStorage(object):
 
     def __init__(self, host_url, db_name):
         server = couchdb.Server(host_url)
-        if server.uuids():
-            self.uid = server.uuids()[0]
         self.db = get_or_create_db(server, db_name)
 
         ViewDefinition.sync_many(
