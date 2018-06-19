@@ -1,7 +1,6 @@
 import pytest
 from tests.test_api import app, storage
 from werkzeug.exceptions import NotFound
-from munch import munchify
 
 
 def test_get(client, storage):

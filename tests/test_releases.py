@@ -2,7 +2,6 @@ import pytest
 from ocdsapi.releases import ReleaseResource
 from tests.test_api import app, storage
 from werkzeug.exceptions import NotFound
-from munch import munchify
 
 @pytest.fixture
 def release(storage):
