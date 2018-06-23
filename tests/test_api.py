@@ -80,7 +80,7 @@ def test_app(db, storage, client):
     # assert res.status_code == 200
     # Release.json
     res = client.get(
-        "/release.json?releaseID={}".format(test_docs[0]['id']))
+        "/api/release.json?releaseID={}".format(test_docs[0]['id']))
     assert '_id' not in res.json
     assert '_rev' not in res.json
     assert res.status_code == 200
@@ -91,11 +91,11 @@ def test_app(db, storage, client):
     # assert '_id' not in res.json
     # assert '_rev' not in res.json
     # assert res.status_code == 200
-    res = client.get("/release.json?releaseID=invalid")
+    res = client.get("/api/release.json?releaseID=invalid")
     # import pdb;pdb.set_trace()
     assert res.status_code == 404
 
-    res = client.get("/release.json")
+    res = client.get("/api/release.json")
     # assert "message" in res.json
     assert res.status_code == 404
     # assert res.json["message"] == {

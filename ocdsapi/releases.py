@@ -87,15 +87,17 @@ class ReleasesResource(Resource, BaseCollectionResource):
 
 
 def include(api, **kw):
+
     api.add_resource(
         ReleasesResource, 
-        '/releases.json',
+        '/api/releases.json',
         endpoint='releases.json',
         resource_class_kwargs=kw
     )
     api.add_resource(
         ReleaseResource,
-        '/release.json',
+        '/api/release.json',
         endpoint='release.json',
         resource_class_kwargs=kw
     )
+    

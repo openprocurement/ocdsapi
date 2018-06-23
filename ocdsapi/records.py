@@ -80,13 +80,13 @@ class RecordsResource(Resource, BaseCollectionResource):
 def include(api, **kw):
     api.add_resource(
         RecordsResource, 
-        '/records.json',
+        '/api/records.json',
         endpoint='records.json',
         resource_class_kwargs=kw
     )
     api.add_resource(
         RecordResource,
-        '/record.json',
+        '/api/record.json',
         endpoint='record.json',
         resource_class_kwargs=kw
     )
