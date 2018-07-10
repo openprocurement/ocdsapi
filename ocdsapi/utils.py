@@ -1,3 +1,4 @@
+
 import ocdsmerge
 
 
@@ -25,7 +26,7 @@ def build_meta(options):
         'publisher': {
             'name': options.get('publisher.name', ''),
             'scheme': options.get('publisher.scheme', ''),
-            'uri': options.get('uri', '')
+            'uri': options.get('publisher.uri', '')
         },
         'license': options.get('license', ''),
         'publicationPolicy': options.get('publicationPolicy', ''),
