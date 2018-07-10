@@ -76,7 +76,7 @@ class ReleasesResource(Resource, BaseCollectionResource):
             ]
         uri = request.full_path
         if uri.endswith('?'):
-            uri = uri.replace[:-1]
+            uri = uri[:-1]
         return {
             'releases': releases,
             'uri': uri,
