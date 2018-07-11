@@ -1,4 +1,4 @@
-
+import yaml
 import ocdsmerge
 
 
@@ -22,16 +22,34 @@ def prepare_responce_doc(doc):
 
 
 def build_meta(options):
-    return {
+    base = {
         'publisher': {
-            'name': options.get('publisher.name', ''),
-            'scheme': options.get('publisher.scheme', ''),
-            'uri': options.get('publisher.uri', '')
+            'name': '',
+            'scheme': '',
+            'uri': ''
         },
-        'license': options.get('license', ''),
-        'publicationPolicy': options.get('publicationPolicy', ''),
+        'license': '',
+        'publicationPolicy': '',
         'version': options.get('version', "1.1")
     }
+
+    if 'metainfo.file' in options:
+        info = options['metainfo.file']
+        with open(info) as _in:
+            metainfo = yaml.load(_in)
+        base.update(metainfo)
+        return base
+    else:
+        return {
+            'publisher': {
+                'name': options.get('publisher.name', ''),
+                'scheme': options.get('publisher.scheme', ''),
+                'uri': options.get('publisher.uri', '')
+            },
+            'license': options.get('license', ''),
+            'publicationPolicy': options.get('publicationPolicy', ''),
+            'version': options.get('version', "1.1")
+        }
 
 
 def get_or_create_db(server, name):
