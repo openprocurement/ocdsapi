@@ -17,6 +17,7 @@ INSTALL_REQUIRES = [
     'pastedeploy',
     'iso8601',
     'gevent',
+    'pyyaml'
 ]
 TEST_REQUIRES = [
     'pytest',
