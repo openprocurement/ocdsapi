@@ -34,6 +34,7 @@ class RecordResource(Resource):
         request_args = item_options.parse_args()
 
         if request_args.ocid:
+            # TODO: multiple docs
             doc = self.db.get_ocid(request_args.ocid)
             if doc:
                 record = prepare_record(doc, request_args.ocid)
