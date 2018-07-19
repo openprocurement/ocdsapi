@@ -74,12 +74,9 @@ class ReleasesResource(Resource, BaseCollectionResource):
                     )
                 for id in response_data['data']
             ]
-        uri = request.full_path
-        if uri.endswith('?'):
-            uri = uri[:-1]
         return {
             'releases': releases,
-            'uri': uri,
+            'uri': self.prepare_uri(),
             'publishedDate': response_data['next']['offset'],
             **app.config['metainfo']
         }

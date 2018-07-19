@@ -68,7 +68,7 @@ class RecordsResource(Resource, BaseCollectionResource):
             ]
 
         return {
-            'uri': request.full_path,
+            'uri': self.prepare_uri(),
             'publishedDate': response_data['next']['offset'],
             'records': releases,
             **app.config['metainfo']

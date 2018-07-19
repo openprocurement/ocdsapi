@@ -23,6 +23,9 @@ class BaseCollectionResource:
                 page=params['offset'],
             )
 
+    def prepare_uri(self):
+        return request.url
+
     def prepare_response(self):
         request_args = self.options.parse_args()
         next_params = {}
