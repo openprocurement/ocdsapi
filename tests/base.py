@@ -12,7 +12,7 @@ test_docs = [
     {
         "_id": "test_id",
         "language": "uk",
-        "ocid": "test_ocid",
+        "ocid": "ocid-xxxx-xxxx",
         "initiationType": "tender",
         "date": "2017-01-01",
         "tag": [

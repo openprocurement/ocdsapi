@@ -31,6 +31,9 @@ class ReleaseResource(BaseResource):
         if not any((request_args.releaseID, request_args.ocid)):
             return abort(404)
 
+        if all((request_args.releaseID, request_args.ocid)):
+            return abort(404)
+
         if request_args.releaseID:
             doc = self.db.get_id(request_args.releaseID)
         else:

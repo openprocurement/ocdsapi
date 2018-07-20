@@ -1,38 +1,33 @@
 from .base import app, storage, db, test_docs
 
 
-def test_application(db, storage, client):
-    # res = client.get("/releases.json")
-    # import pdb;pdb.set_trace()
-    # assert res.status_code == 200
-    # Release.json
-    res = client.get(
-        "/api/release.json?releaseID={}".format(test_docs[0]['id']))
-    assert '_id' not in res.json
-    assert '_rev' not in res.json
-    assert res.status_code == 200
+def test_get_id_rev(db, storage, client):
 
-    # res = client.get(
-    #     "/release.json?ocid={}".format(test_doc['ocid'])
-    #     )
-    # assert '_id' not in res.json
-    # assert '_rev' not in res.json
-    # assert res.status_code == 200
-    res = client.get("/api/release.json?releaseID=invalid")
-    # import pdb;pdb.set_trace()
-    assert res.status_code == 404
+    with client.get(
+        "/api/release.json?releaseID={}".format(test_docs[0]['id'])) as resp:
+        assert '_id' not in resp.json
+        assert '_rev' not in resp.json
+        assert resp.status_code == 200
 
-    res = client.get("/api/release.json")
-    # assert "message" in res.json
-    assert res.status_code == 404
-    # assert res.json["message"] == {
-    #     "releaseID": "Provide valid releaseID"
-    # }
-    # Releases.json
-    # res = client.get("/releases.json")
-    # assert res.status_code == 200
-    # assert "links" in res.json
-    # assert "releases" in res.json
-    # assert type(res.json['releases']) == list
-    # assert res.json['releases'][0] == "/release.json?id={}".format(test_doc['id'])
-    # assert "next" in res.json['links']
+
+def test_get_ocid_rev(db, storage, client):
+    with client.get( "/api/release.json?ocid={}".format(test_docs[0]['ocid'])) as resp:
+        assert '_id' not in resp.json
+        assert '_rev' not in resp.json
+        assert resp.status_code == 200
+
+
+def test_get_invalid_id(db, storage, client):
+    with client.get("/api/release.json?releaseID=invalid") as res:
+        assert res.status_code == 404
+    with client.get("/api/release.json") as res:
+        assert res.status_code == 404
+
+
+def test_get_both_api_ocid(db, storage, client):
+    query = "releaseID={}&ocid={}".format(
+        test_docs[0]['id'],
+        test_docs[0]['ocid']
+    )
+    with client.get("/api/release.json?{}".format(query)) as res:
+        assert res.status_code == 404
