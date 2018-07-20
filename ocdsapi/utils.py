@@ -22,14 +22,17 @@ def prepare_responce_doc(doc):
 
 
 def build_meta(options):
+    """
+    Prepare package metadata(license, publicationPolicy ...)
+    """
     base = {
         'publisher': {
-            'name': '',
-            'scheme': '',
-            'uri': ''
+            'name': None,
+            'scheme': None,
+            'uri': None
         },
-        'license': '',
-        'publicationPolicy': '',
+        'license': None,
+        'publicationPolicy': None,
         'version': options.get('version', "1.1")
     }
 
@@ -42,17 +45,20 @@ def build_meta(options):
     else:
         return {
             'publisher': {
-                'name': options.get('publisher.name', ''),
-                'scheme': options.get('publisher.scheme', ''),
-                'uri': options.get('publisher.uri', '')
+                'name': options.get('publisher.name'),
+                'scheme': options.get('publisher.scheme'),
+                'uri': options.get('publisher.uri')
             },
-            'license': options.get('license', ''),
-            'publicationPolicy': options.get('publicationPolicy', ''),
+            'license': options.get('license'),
+            'publicationPolicy': options.get('publicationPolicy'),
             'version': options.get('version', "1.1")
         }
 
 
 def get_or_create_db(server, name):
+    """
+    Return existing db instance or create new one
+    """
     if name not in server:
         server.create(name)
     return server[name]

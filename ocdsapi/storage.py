@@ -1,19 +1,19 @@
+""" storage.py - couchdb wrapper """
+import logging
 import arrow
 import couchdb
-import logging
-import sys
-from iso8601 import parse_date
 from couchdb.design import ViewDefinition
+from iso8601 import parse_date
 from ocdsapi.utils import prepare_responce_doc
 from .utils import get_or_create_db
 
 
-releases_ocid = ViewDefinition(
+OCID = ViewDefinition(
     'releases', 'id_index',
     map_fun=u"""function(doc) {emit([doc._id, doc.ocid], doc.date);}"""
 )
 
-releases_id = ViewDefinition(
+ID = ViewDefinition(
     'releases', 'date_index',
     map_fun=u"""function(doc) {emit([doc.date, doc._id], doc.ocid);}"""
 )
@@ -26,10 +26,7 @@ class ReleaseStorage(object):
         server = couchdb.Server(host_url)
         self.db = get_or_create_db(server, db_name)
 
-        ViewDefinition.sync_many(
-            self.db,
-            [releases_ocid, releases_id]
-            )
+        ViewDefinition.sync_many(self.db, [OCID, ID])
         LOGGER.info("Starting storage: {}".format(
             self.db.info()
         ))
@@ -67,12 +64,12 @@ class ReleaseStorage(object):
             key = item.get('key')
             if key:
                 return arrow.get(key[0]).format("YYYY-MM-DD")
-    
+
     def min_date(self):
         return self._by_date(
             limit=1,
             )
-        
+
     def max_date(self):
         return self._by_date(
             limit=1,
@@ -94,7 +91,7 @@ class ReleaseStorage(object):
 
     def page(self, start_date, **kw):
         resp = self._by_limit(start_date, **kw)
-        
+
         if resp and resp.rows:
             data = [
                 (item['key'][1], item['key'][0], item.value)
@@ -103,7 +100,7 @@ class ReleaseStorage(object):
             last = data[-1][1]
             return last, data[:-1]
         return ("", "")
-    
+
     def _inside(self, start_date, end_date):
         return self.db.view(
             'releases/date_index',

@@ -1,5 +1,4 @@
-import pytest
-from tests.test_api import app, storage
+from .base import storage, app
 from werkzeug.exceptions import NotFound
 
 

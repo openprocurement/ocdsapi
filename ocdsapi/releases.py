@@ -2,18 +2,17 @@ from urllib.parse import urljoin
 from flask import request
 from flask import url_for
 from flask import current_app as app
-from flask_restful import Resource
 from flask_restful import reqparse
 from flask_restful import marshal
 from flask_restful import abort
 
-from .base import BaseCollectionResource
+from .core import BaseResource, BaseCollectionResource
+from .application import API
 
 
 collection_options = reqparse.RequestParser()
 collection_options.add_argument("idsOnly", type=bool)
 collection_options.add_argument("page", type=str)
-# collection_options.add_argument("packageURL", type=str)
 collection_options.add_argument("releaseID", type=str)
 collection_options.add_argument("descending", type=bool)
 
@@ -22,14 +21,10 @@ item_options.add_argument(
     "releaseID",
     type=str,
     )
-# item_options.add_argument("packageURL", type=str)  # TODO:
 item_options.add_argument("ocid", type=str)
 
 
-class ReleaseResource(Resource):
-
-    def __init__(self, **kw):
-        self.db = kw.get('db')
+class ReleaseResource(BaseResource):
 
     def _validate_args(self):
         request_args = item_options.parse_args()
@@ -50,15 +45,10 @@ class ReleaseResource(Resource):
         return abort(404)
 
 
-class ReleasesResource(Resource, BaseCollectionResource):
+class ReleasesResource(BaseCollectionResource):
 
     resource = 'releases.json'
     options = collection_options
-
-    def __init__(self, **kw):
-        self.db = kw.get('db')
-        self.skip_empty = kw.get('skip_empty')
-        self.kw = kw
 
     def _prepare(self, args, response_data):
         if args.idsOnly:
@@ -85,18 +75,18 @@ class ReleasesResource(Resource, BaseCollectionResource):
         return self.prepare_response()
 
 
-def include(api, **kw):
+def include(options):
 
-    api.add_resource(
+    API.add_resource(
         ReleasesResource, 
         '/api/releases.json',
         endpoint='releases.json',
-        resource_class_kwargs=kw
+        resource_class_kwargs={"options": options}
     )
-    api.add_resource(
+    API.add_resource(
         ReleaseResource,
         '/api/release.json',
         endpoint='release.json',
-        resource_class_kwargs=kw
+        resource_class_kwargs={"options": options}
     )
     

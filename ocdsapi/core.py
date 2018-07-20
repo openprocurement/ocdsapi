@@ -1,9 +1,19 @@
 from urllib.parse import urljoin
 from flask import request
 from flask import url_for
+from flask_restful import Resource
+
+from .application import APP
 
 
-class BaseCollectionResource:
+class BaseResource(Resource):
+
+    def __init__(self, options={}):
+        self.db = APP.db
+        self._options = options
+
+
+class BaseCollectionResource(BaseResource):
     resource = ""
     options = {}
 

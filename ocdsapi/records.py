@@ -2,33 +2,28 @@ from urllib.parse import urljoin
 from flask import request
 from flask import url_for
 from flask import current_app as app
-from flask_restful import Resource
 from flask_restful import reqparse
 from flask_restful import marshal
 from flask_restful import abort
 
-from .base import BaseCollectionResource
+from .core import BaseResource, BaseCollectionResource
 from .utils import prepare_record
+from .application import API
 
 
 collection_options = reqparse.RequestParser()
 collection_options.add_argument("idsOnly", type=bool)
 collection_options.add_argument("page", type=str)
-# collection_options.add_argument("packageURL", type=str)
 collection_options.add_argument("descending", type=bool)
 
 item_options = reqparse.RequestParser()
-# item_options.add_argument("packageURL", type=str)  # TODO:
 item_options.add_argument("ocid",
     type=str, 
     required=True,
     )
 
 
-class RecordResource(Resource):
-
-    def __init__(self, **kw):
-        self.db = kw.get('db')
+class RecordResource(BaseResource):
 
     def get(self):
         request_args = item_options.parse_args()
@@ -42,15 +37,10 @@ class RecordResource(Resource):
         return abort(404)
 
 
-class RecordsResource(Resource, BaseCollectionResource):
+class RecordsResource(BaseCollectionResource):
 
     resource = 'records.json'
     options = collection_options
-
-    def __init__(self, **kw):
-        self.db = kw.get('db')
-        self.skip_empty = kw.get('skip_empty')
-        self.kw = kw
 
     def _prepare(self, args, response_data):
         if args.idsOnly:
@@ -78,16 +68,16 @@ class RecordsResource(Resource, BaseCollectionResource):
         return self.prepare_response()
 
 
-def include(api, **kw):
-    api.add_resource(
+def include(options):
+    API.add_resource(
         RecordsResource, 
         '/api/records.json',
         endpoint='records.json',
-        resource_class_kwargs=kw
+        resource_class_kwargs={"options": options}
     )
-    api.add_resource(
+    API.add_resource(
         RecordResource,
         '/api/record.json',
         endpoint='record.json',
-        resource_class_kwargs=kw
+        resource_class_kwargs={"options": options}
     )

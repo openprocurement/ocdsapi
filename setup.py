@@ -29,7 +29,7 @@ TEST_REQUIRES = [
 EXTRA = INSTALL_REQUIRES + TEST_REQUIRES
 ENTRY_POINTS = {
     'paste.app_factory': [
-        'main = ocdsapi.app:create_app',
+        'main = ocdsapi.application:make_paste_application',
     ],
     'ocdsapi.resources': [
         'releases = ocdsapi.releases:include',
