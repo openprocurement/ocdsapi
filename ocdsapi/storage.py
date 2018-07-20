@@ -4,8 +4,7 @@ import arrow
 import couchdb
 from couchdb.design import ViewDefinition
 from iso8601 import parse_date
-from ocdsapi.utils import prepare_responce_doc
-from .utils import get_or_create_db
+from .utils import get_or_create_db, prepare_responce_doc
 
 
 OCID = ViewDefinition(
