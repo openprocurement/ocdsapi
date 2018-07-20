@@ -26,19 +26,14 @@ item_options.add_argument("ocid", type=str)
 
 class ReleaseResource(BaseResource):
 
-    def _validate_args(self):
-        request_args = item_options.parse_args()
-
-        if not any((request_args.releaseID, request_args.ocid)):
-           return abort(404)
-        return request_args
-
     def get(self):
-        request_args = self._validate_args()
+        request_args = item_options.parse_args()
+        if not any((request_args.releaseID, request_args.ocid)):
+            return abort(404)
 
         if request_args.releaseID:
             doc = self.db.get_id(request_args.releaseID)
-        elif request_args.ocid:
+        else:
             doc = self.db.get_ocid(request_args.ocid)
         if doc:
             return doc
