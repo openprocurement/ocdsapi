@@ -1,6 +1,10 @@
 import yaml
 import ocdsmerge
 
+DEFAULT_EXTENSIONS = [
+    "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json"
+]
+
 
 def prepare_record(releases, ocid):
     if not isinstance(releases, list):
@@ -33,7 +37,8 @@ def build_meta(options):
         },
         'license': None,
         'publicationPolicy': None,
-        'version': options.get('version', "1.1")
+        'version': options.get('version', "1.1"),
+        'extensions': DEFAULT_EXTENSIONS
     }
 
     if 'metainfo.file' in options:
