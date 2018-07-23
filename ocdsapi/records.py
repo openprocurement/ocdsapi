@@ -7,7 +7,7 @@ from flask_restful import marshal
 from flask_restful import abort
 
 from .core import BaseResource, BaseCollectionResource
-from .utils import prepare_record
+from .utils import prepare_record, prepare_responce_doc
 from .application import API
 
 
@@ -44,23 +44,20 @@ class RecordsResource(BaseCollectionResource):
 
     def _prepare(self, args, response_data):
         if args.idsOnly:
-            releases = [
-                [item[0], item[2]]
+            records = [
+                {item[0]: item[2]}
                 for item in response_data['data']
             ]
         else:
-            releases = [
-                urljoin(
-                    request.url_root,
-                    url_for('record.json', ocid=id[2])
-                    )
-                for id in response_data['data']
+            records = [
+                prepare_record(item[-1], item[-1].get('ocid'))
+                for item in response_data['data']
             ]
 
         return {
             'uri': self.prepare_uri(),
             'publishedDate': response_data['next']['offset'],
-            'records': releases,
+            'records': records,
             **app.config['metainfo']
         }
 

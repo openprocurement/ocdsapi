@@ -51,7 +51,12 @@ class BaseCollectionResource(BaseResource):
             view_offset = page
         else:
             view_offset = '9' if descending else ''
-        last_key, results = self.db.page(view_offset, descending=descending)
+        last_key, results = self.db.page(
+            view_offset,
+            descending=descending,
+            include_docs=True,
+            view_limit=APP.paginate_by
+        )
         gettter = lambda item: item[1]
         if results:
             next_params['offset'], prev_params['offset'] = last_key, gettter(results[0])

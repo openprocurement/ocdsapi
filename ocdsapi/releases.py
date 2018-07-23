@@ -8,6 +8,7 @@ from flask_restful import abort
 
 from .core import BaseResource, BaseCollectionResource
 from .application import API
+from .utils import prepare_responce_doc
 
 
 collection_options = reqparse.RequestParser()
@@ -51,16 +52,13 @@ class ReleasesResource(BaseCollectionResource):
     def _prepare(self, args, response_data):
         if args.idsOnly:
             releases = [
-                [item[0], item[2]]
+                {item[0]: item[2]}
                 for item in response_data['data']
             ]
         else:
             releases = [
-                urljoin(
-                    request.url_root,
-                    url_for('release.json', releaseID=id[0])
-                    )
-                for id in response_data['data']
+                item[-1]
+                for item in response_data['data']
             ]
         return {
             'releases': releases,

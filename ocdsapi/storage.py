@@ -78,26 +78,40 @@ class ReleaseStorage(object):
     def get_window(self):
         return (self.min_date(), self.max_date())
 
-    def _by_limit(self, start_key, view_limit=101, **kw):
+    def _by_limit(
+            self, start_key, view_limit=101,
+            include_docs=False, **kw
+    ):
         key = parse_date(start_key).isoformat() if start_key else ""
         if key:
             kw['startkey'] = (key, "")
         return self.db.view(
             'releases/date_index',
             limit=view_limit,
+            include_docs=include_docs,
             **kw
         )
 
-    def page(self, start_date, **kw):
-        resp = self._by_limit(start_date, **kw)
-
-        if resp and resp.rows:
+    def page(self, start_date, include_docs=False, **kw):
+        resp = self._by_limit(
+            start_date, include_docs=include_docs, **kw
+        )
+        if not include_docs:
+            if resp and resp.rows:
+                data = [
+                    (item['key'][1], item['key'][0], item.value)
+                    for item in resp
+                ]
+                last = data[-1][1]
+                return last, data[:-1]
+        else:
             data = [
-                (item['key'][1], item['key'][0], item.value)
+                (item['key'][1], item['key'][0],
+                 item.value, prepare_responce_doc(item.doc))
                 for item in resp
             ]
             last = data[-1][1]
-            return last, data[:-1]
+            return last, data[:-1]                
         return ("", "")
 
     def _inside(self, start_date, end_date):

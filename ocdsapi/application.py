@@ -19,6 +19,7 @@ def make_paste_application(global_config, **options):
         options.get('couchdb_url'),
         options.get('couchdb_dbname'),
     )
+    APP.paginate_by = options.get('paginate_by', 20)
     APP.config['metainfo'] = build_meta(options)
     for plugin in iter_entry_points('ocdsapi.resources'):
         includeme = plugin.load()
