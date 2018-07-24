@@ -14,7 +14,7 @@ def test_get(client, storage):
 
 def test_prepare_response(client, storage):
     with client.get('/api/releases.json?idsOnly=True') as response:
-        assert response.json['releases'] == [{'spam_id': 'spam_ocid'}]
+        assert response.json['releases'] == [{"id": 'spam_id', "ocid": 'spam_ocid'}]
     with client.get('/api/releases.json') as response:
         release = response.json['releases']
         assert release[0]['ocid'] == test_docs[1]['ocid']

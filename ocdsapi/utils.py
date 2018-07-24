@@ -25,6 +25,13 @@ def prepare_responce_doc(doc):
     return doc
 
 
+def ids_only(doc):
+    return {
+        "id": doc.pop('id'),
+        "ocid": doc.pop('ocid')
+    }
+
+
 def build_meta(options):
     """
     Prepare package metadata(license, publicationPolicy ...)
