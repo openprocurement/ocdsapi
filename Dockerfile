@@ -1,9 +1,16 @@
 FROM python:3.6.5-alpine
-RUN apk add --no-cache build-base bash readline-dev zlib-dev bzip2-dev sqlite-dev python3-dev libressl-dev
-WORKDIR /api
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-COPY . .
-RUN pip install . 
-ENTRYPOINT [ "gunicorn" ]
-CMD ["--help"]
+
+RUN apk --no-cache update && apk --no-cache add bash && \
+    addgroup ocds && adduser -D -s /bin/bash -h /home/ocds -G ocds ocds
+RUN apk --no-cache add git build-base python3-dev libxslt-dev
+
+WORKDIR /home/ocds
+RUN pip install git+https://github.com/openprocurement/ocdsapi.git
+ADD requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
+ADD . .
+RUN pip install .
+
+USER ocds
+ENTRYPOINT ["ocds-server"]
+CMD ["--config", "server.yml"]
