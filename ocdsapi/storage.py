@@ -7,6 +7,14 @@ from iso8601 import parse_date
 from .utils import get_or_create_db, prepare_responce_doc
 
 
+LOGGER = logging.getLogger("ocdsapi")
+
+
+DatemodifiedView = ViewDefinition(
+    'releases', 'datemodified_filter',
+    map_fun=u"""function(doc) {emit(doc._id, doc.date);}"""
+)
+
 OCID = ViewDefinition(
     'releases', 'id_index',
     map_fun=u"""function(doc) {emit([doc._id, doc.ocid], doc.date);}"""
@@ -16,7 +24,6 @@ ID = ViewDefinition(
     'releases', 'date_index',
     map_fun=u"""function(doc) {emit([doc.date, doc._id], doc.ocid);}"""
 )
-LOGGER = logging.getLogger("ocdsapi")
 
 
 class ReleaseStorage(object):
@@ -25,7 +32,7 @@ class ReleaseStorage(object):
         server = couchdb.Server(host_url)
         self.db = get_or_create_db(server, db_name)
 
-        ViewDefinition.sync_many(self.db, [OCID, ID])
+        ViewDefinition.sync_many(self.db, [OCID, ID, DatemodifiedView])
         LOGGER.info("Starting storage: {}".format(
             self.db.info()
         ))
