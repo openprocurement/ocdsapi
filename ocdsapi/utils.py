@@ -1,19 +1,27 @@
+import operator
 import yaml
 import ocdsmerge
+
 
 DEFAULT_EXTENSIONS = [
     "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json"
 ]
 
 
-def prepare_record(releases, ocid):
-    if not isinstance(releases, list):
-        releases = [releases]
+def prepare_record(releases):
+    if not releases:
+        return {}
+    # import pdb; pdb.set_trace()
+    ocids = {rel['ocid'] for rel in releases}
+    if len(ocids) > 1:
+        raise ValueError("Different ocids in same record {}".format(
+            ocids
+        ))
     record = {
         'releases': releases,
         'compiledRelease': ocdsmerge.merge(releases),
         'versionedRelease': ocdsmerge.merge_versioned(releases),
-        'ocid': ocid,
+        'ocid': ocids.pop(),
     }
     return record
 
@@ -74,3 +82,7 @@ def get_or_create_db(server, name):
     if name not in server:
         server.create(name)
     return server[name]
+
+
+def find_max_date(items):
+    return max(items, key=operator.itemgetter('date'))

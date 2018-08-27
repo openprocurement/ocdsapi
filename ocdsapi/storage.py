@@ -42,18 +42,23 @@ class ReleaseStorage(object):
             for row in responce.rows:
                 doc = row.get('doc')
                 if doc:
-                    return prepare_responce_doc(doc)
-        return ""
+                    yield prepare_responce_doc(doc)
+        raise StopIteration
 
-    def get_id(self, id):
-        startkey = (id, '')
-        endkey = (id, 'xxxxxxxxxxx')
-        return self._by_id(startkey, endkey)
+    def get_id(self, id_):
+        startkey = (id_, '')
+        endkey = (id_, 'xxxxxxxxxxx')
+        for release in self._by_id(startkey, endkey):
+            if release:
+                return release
 
     def get_ocid(self, ocid):
         startkey = ('', ocid)
         endkey = ('x' * 33, ocid)
-        return self._by_id(startkey, endkey)
+        return [
+            doc for doc in
+            self._by_id(startkey, endkey)
+        ]
 
     def _by_date(self, **kw):
         for item in self.db.view(
@@ -99,18 +104,26 @@ class ReleaseStorage(object):
         if not include_docs:
             if resp and resp.rows:
                 data = [
-                    (item['key'][1], item['key'][0], item.value)
+                    {
+                        'id': item.id,
+                        'date': item.key[0],
+                        'ocid': item.value
+                    }
                     for item in resp
                 ]
                 last = data[-1][1]
                 return last, data[:-1]
         else:
             data = [
-                (item['key'][1], item['key'][0],
-                 item.value, prepare_responce_doc(item.doc))
+                {
+                    'id': item.id,
+                    'date': item.key[0],
+                    'ocid': item.value,
+                    'doc': prepare_responce_doc(item.doc)
+                }
                 for item in resp
             ]
-            last = data[-1][1]
+            last = data[-1]
             return last, data[:-1]                
         return ("", "")
 

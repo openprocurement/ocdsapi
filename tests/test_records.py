@@ -4,7 +4,7 @@ from werkzeug.exceptions import NotFound
 
 def test_get(client, storage):
     with client.get('/api/record.json?ocid=test_ocid') as response:
-        assert response.json['releases'][0] == storage.get_ocid('test_ocid')
+        assert [response.json['releases'][0]] == storage.get_ocid('test_ocid')
 
 
 def test_get_not_found(client, storage):

@@ -10,24 +10,14 @@ def test_get_id_rev(db, storage, client):
         assert resp.status_code == 200
 
 
-def test_get_ocid_rev(db, storage, client):
-    with client.get( "/api/release.json?ocid={}".format(test_docs[0]['ocid'])) as resp:
-        assert '_id' not in resp.json
-        assert '_rev' not in resp.json
-        assert resp.status_code == 200
-
-
 def test_get_invalid_id(db, storage, client):
     with client.get("/api/release.json?releaseID=invalid") as res:
         assert res.status_code == 404
+        assert 'The requested URL was not found on the server' in res.json['message']
     with client.get("/api/release.json") as res:
-        assert res.status_code == 404
+        assert res.status_code == 400
+        assert res.json['message'] == {
+            'releaseID': 'Missing required parameter in the JSON body or the post body or the query string'
+            }
 
 
-def test_get_both_api_ocid(db, storage, client):
-    query = "releaseID={}&ocid={}".format(
-        test_docs[0]['id'],
-        test_docs[0]['ocid']
-    )
-    with client.get("/api/release.json?{}".format(query)) as res:
-        assert res.status_code == 404

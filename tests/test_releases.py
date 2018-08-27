@@ -6,8 +6,6 @@ from werkzeug.exceptions import NotFound
 def test_get(client, storage):
     with client.get('/api/release.json?releaseID=test_id') as response:
         assert response.json == storage.get_id('test_id')
-    with client.get('/api/release.json?ocid=test_ocid') as response:
-        assert response.json == storage.get_ocid('test_ocid')
     with client.get('/release.json') as response:
         assert response.status_code == 404
 

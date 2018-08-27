@@ -70,7 +70,7 @@ class TestStorage(object):
         assert "_rev" not in release
 
     def test_get_by_ocid(self, db, storage):
-        release = storage.get_ocid(test_release.get("ocid"))
+        release = storage.get_ocid(test_release.get("ocid"))[0]
         assert release
         assert release['tender'] == test_release['tender']
         assert "_id" not in release
