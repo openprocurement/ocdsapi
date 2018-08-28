@@ -123,8 +123,9 @@ class ReleaseStorage(object):
                 }
                 for item in resp
             ]
-            last = data[-1]
-            return last, data[:-1]                
+            if data:
+                last = data[-1]
+                return last, data[:-1]                
         return ("", "")
 
     def _inside(self, start_date, end_date):
