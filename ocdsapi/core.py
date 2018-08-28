@@ -1,7 +1,7 @@
 from urllib.parse import urljoin
 from flask import request
 from flask import url_for, abort
-from flask_restful import Resource
+from flask_restful_swagger_2 import Resource
 
 from .application import APP
 
@@ -9,7 +9,7 @@ from .application import APP
 class BaseResource(Resource):
 
     options = {}
-
+    
     def __init__(self, options={}):
         self.db = APP.db
         self._options = options
@@ -17,8 +17,8 @@ class BaseResource(Resource):
     def _get(self, args):
         # Override this
         return {}
-
-    def get(self):
+    
+    def prepare_response(self):
         request_args = self.options.parse_args()
         item = self._get(request_args)
         if item:
