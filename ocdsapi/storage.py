@@ -10,7 +10,7 @@ from .utils import get_or_create_db, prepare_responce_doc
 LOGGER = logging.getLogger("ocdsapi")
 
 
-DatemodifiedView = ViewDefinition(
+DATEMODIFIED = ViewDefinition(
     'releases', 'datemodified_filter',
     map_fun=u"""function(doc) {emit(doc._id, doc.date);}"""
 )
@@ -32,7 +32,7 @@ class ReleaseStorage(object):
         server = couchdb.Server(host_url)
         self.db = get_or_create_db(server, db_name)
 
-        ViewDefinition.sync_many(self.db, [OCID, ID, DatemodifiedView])
+        ViewDefinition.sync_many(self.db, [OCID, ID, DATEMODIFIED])
         LOGGER.info("Starting storage: {}".format(
             self.db.info()
         ))
