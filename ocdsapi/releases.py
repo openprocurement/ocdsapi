@@ -27,13 +27,12 @@ item_options.add_argument(
 
 class ReleaseResource(BaseResource):
 
-    def get(self):
-        request_args = item_options.parse_args()
-        if request_args.releaseID:
-            doc = self.db.get_id(request_args.releaseID)
-            if doc:
-                return doc
-        return abort(404)
+    options = item_options
+
+    def _get(self, request_args):
+        if not request_args.releaseID:
+            return {}
+        return self.db.get_id(request_args.releaseID)
 
 
 class ReleasesResource(BaseCollectionResource):

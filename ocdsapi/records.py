@@ -26,16 +26,14 @@ item_options.add_argument("ocid",
 
 class RecordResource(BaseResource):
 
-    def get(self):
-        request_args = item_options.parse_args()
+    options = item_options
 
-        if request_args.ocid:
-            record = prepare_record(
-                self.db.get_ocid(request_args.ocid)
-            )
-            if record:
-                return record
-        return abort(404)
+    def _get(self, request_args):
+        if not request_args.ocid:
+            return {}
+        return prepare_record(
+            self.db.get_ocid(request_args.ocid)
+        )
 
 
 class RecordsResource(BaseCollectionResource):

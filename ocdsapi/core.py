@@ -1,6 +1,6 @@
 from urllib.parse import urljoin
 from flask import request
-from flask import url_for
+from flask import url_for, abort
 from flask_restful import Resource
 
 from .application import APP
@@ -8,14 +8,26 @@ from .application import APP
 
 class BaseResource(Resource):
 
+    options = {}
+
     def __init__(self, options={}):
         self.db = APP.db
         self._options = options
 
+    def _get(self, args):
+        # Override this
+        return {}
+
+    def get(self):
+        request_args = self.options.parse_args()
+        item = self._get(request_args)
+        if item:
+            return item
+        return abort(404)
+
 
 class BaseCollectionResource(BaseResource):
     resource = ""
-    options = {}
 
     def _prepare(self):
         raise NotImplementedError
