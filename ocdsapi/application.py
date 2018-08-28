@@ -2,6 +2,7 @@ from gevent import monkey; monkey.patch_all()
 
 from flask import Flask
 from flask_restful import Api
+from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
 from ocdsapi.storage import ReleaseStorage
 from ocdsapi.utils import build_meta
@@ -9,6 +10,7 @@ from pkg_resources import iter_entry_points
 
 
 APP = Flask('ocdsapi')
+CORS(APP)
 APP.wsgi_app = ProxyFix(APP.wsgi_app) # Fixed proto on nginx proxy
 API = Api(APP)
 
