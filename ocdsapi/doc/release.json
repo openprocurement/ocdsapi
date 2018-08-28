@@ -1,0 +1,16 @@
+{
+    "summary" : "Returns an OCDS release",
+    "description" : "This should return an OCDS release object. There is potential for releaseIds to be duplicated for a particular API.  If this is the case then the user should provide either a packageURL or an ocid in order to get an individual release.",
+    "responses": {
+        "200": {"description": "Single Release"}
+    },
+    "parameters": [
+        {
+            "in": "query",
+            "name": "releaseID",
+            "required": true,
+            "type": "string",
+            "description": "The release id of the release"
+        }
+    ]
+}

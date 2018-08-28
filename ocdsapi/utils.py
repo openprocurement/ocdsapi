@@ -1,4 +1,6 @@
 from datetime import datetime
+from json import load
+from os import path
 import operator
 import yaml
 import ocdsmerge
@@ -7,6 +9,7 @@ import ocdsmerge
 DEFAULT_EXTENSIONS = [
     "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json"
 ]
+THIS = path.dirname(path.abspath(__file__))
 
 
 def prepare_record(releases):
@@ -90,3 +93,8 @@ def find_max_date(items):
     if not items:
         return datetime.now().isoformat()
     return max(items, key=operator.itemgetter('date'))
+
+
+def read_datafile(name):
+    with open(path.join(THIS, 'doc', name)) as fd:
+        return load(fd)
