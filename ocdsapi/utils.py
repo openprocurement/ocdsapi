@@ -28,9 +28,10 @@ def prepare_record(releases):
 
 
 def prepare_responce_doc(doc):
-    doc.pop('_rev')
-    doc.pop('$schema')
-    doc['id'] = doc.pop('_id')
+    doc.pop('_rev', '')
+    doc.pop('$schema', '')
+    if doc.get('_id'):
+        doc['id'] = doc.pop('_id')
     return doc
 
 
