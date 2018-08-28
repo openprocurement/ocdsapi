@@ -11,6 +11,8 @@ INSTALL_REQUIRES = [
     'requests',
     'Flask',
     'flask-restful',
+    'flask-cors',
+    'flask-restful-swagger-2',
     'arrow',
     'ocdsmerge',
     "gunicorn",

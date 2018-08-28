@@ -5,10 +5,12 @@ from flask import current_app as app
 from flask_restful import reqparse
 from flask_restful import marshal
 from flask_restful import abort
+from flask_restful_swagger_2 import swagger
 
 from .core import BaseResource, BaseCollectionResource
 from .application import API
-from .utils import prepare_responce_doc, ids_only
+from .utils import prepare_responce_doc,\
+    ids_only, find_max_date, read_datafile
 
 
 collection_options = reqparse.RequestParser()
@@ -21,27 +23,25 @@ item_options = reqparse.RequestParser()
 item_options.add_argument(
     "releaseID",
     type=str,
+    required=True,
     )
-item_options.add_argument("ocid", type=str)
+
+releases_doc = read_datafile('releases.json')
+release_doc = read_datafile('release.json')
 
 
 class ReleaseResource(BaseResource):
 
+    options = item_options
+
+    def _get(self, request_args):
+        if not request_args.releaseID:
+            return {}
+        return self.db.get_id(request_args.releaseID)
+
+    @swagger.doc(release_doc)
     def get(self):
-        request_args = item_options.parse_args()
-        if not any((request_args.releaseID, request_args.ocid)):
-            return abort(404)
-
-        if all((request_args.releaseID, request_args.ocid)):
-            return abort(404)
-
-        if request_args.releaseID:
-            doc = self.db.get_id(request_args.releaseID)
-        else:
-            doc = self.db.get_ocid(request_args.ocid)
-        if doc:
-            return doc
-        return abort(404)
+        return self.prepare_response()
 
 
 class ReleasesResource(BaseCollectionResource):
@@ -52,21 +52,22 @@ class ReleasesResource(BaseCollectionResource):
     def _prepare(self, args, response_data):
         if args.idsOnly:
             releases = [
-                ids_only(item[-1])
-                for item in response_data['data']
+                ids_only(item['doc'])
+                for item in response_data
             ]
         else:
             releases = [
-                item[-1]
-                for item in response_data['data']
+                item['doc']
+                for item in response_data
             ]
         return {
             'releases': releases,
             'uri': self.prepare_uri(),
-            'publishedDate': response_data['next']['offset'],
+            'publishedDate': find_max_date(response_data),
             **app.config['metainfo']
         }
-
+    
+    @swagger.doc(releases_doc)
     def get(self):
         return self.prepare_response()
 

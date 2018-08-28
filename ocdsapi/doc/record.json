@@ -1,0 +1,16 @@
+{
+    "summary" : "Returns an OCDS record",
+    "description" : "This should return an OCDS record object.",
+    "responses": {
+        "200": {"description": "Single Record"}
+    },
+    "parameters": [
+        {
+            "in": "query",
+            "name": "ocid",
+            "required": true,
+            "type": "string",
+            "description": "The ocid of the record"
+        }
+    ]
+}
