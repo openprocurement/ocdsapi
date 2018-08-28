@@ -15,13 +15,15 @@ def test_get_not_found(client, storage):
 def test_response_ids_only(client, storage):
     with client.get('/api/records.json?idsOnly=True') as response:
         result = response.json
-        assert result['records'] == [{"id": 'spam_id', "ocid": 'spam_ocid'}]
+        assert result['records'] == [
+            {"id": 'spam_id', "ocid": 'spam_ocid'}
+        ]
 
 
 def test_prepare_response(client, storage):
     with client.get('/api/records.json') as response:
         result = response.json
-        record = result['records'][0]
-        assert 'compiledRelease' in record
-        assert 'versionedRelease' in record
-        assert 'releases' in record
+        for record in result['records']:
+            assert 'compiledRelease' in record
+            assert 'versionedRelease' in record
+            assert 'releases' in record
