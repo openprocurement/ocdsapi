@@ -1,0 +1,16 @@
+variables:
+  COMPONENT_PROJECT_ID: 466
+  COMPONENT_PROJECT_PIPELINE_TRIGGER: 5ec45d577ae29bc712f6e438d62e31
+
+before_script:
+  - docker info
+
+build:
+  stage: build
+  script:
+    - docker run --rm -i -v `pwd`:/package:Z -w /package python:3.6.5-alpine sh -c "pip install .[test] && pytest tests/; chown -R `id -u`:`id -g` /package && ls -AlhF"
+    - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
+  tags:
+    - spage
+  only:
+    - master
