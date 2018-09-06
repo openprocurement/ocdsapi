@@ -5,9 +5,10 @@ variables:
 
 before_script:
   - python3 -V && python3 -m venv venv && source venv/bin/activate
-  - COUCHDB_TEST_CONTAINER=`docker run -d --name $CI_COMMIT_REF_SLUG_$CI_JOB_ID -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -p 5984:5984 couchdb:1.7.2`
+  - docker run -d --name $CI_COMMIT_REF_SLUG_$CI_JOB_ID -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -p 5984:5984 couchdb:1.7.2
 after_script:
-  - docker rm -f "$COUCHDB_TEST_CONTAINER" || docker rm -f "$CI_COMMIT_REF_SLUG_$CI_JOB_ID"
+  - docker rm -f "$CI_COMMIT_REF_SLUG_$CI_JOB_ID"
+  - pip list
 
 test:
   script:
