@@ -5,13 +5,14 @@ variables:
 
 before_script:
   - python3 -V && python3 -m venv venv && source venv/bin/activate
+  - COUCHDB_TEST_CONTAINER=`docker run -d -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -p 5984:5984 couchdb:1.7.2`
+after_script:
+  - docker rm -f $COUCHDB_TEST_CONTAINER
 
 test:
   script:
     - pip install .[test]
-    - COUCHDB_TEST_CONTAINER=`docker run -d -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -p "127.0.0.1:5984:5984" couchdb:1.7.2`
-    - pytest tests/; docker rm -f $COUCHDB_TEST_CONTAINER
-    - python setup.py sdist
+    - pytest tests/ && python setup.py sdist
     - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
   artifacts:
     expire_in: 1 week
