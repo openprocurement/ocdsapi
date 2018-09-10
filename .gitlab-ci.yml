@@ -16,10 +16,6 @@ test:
   script:
     - docker run --network host --rm -u root -v `pwd`:/package:Z -w /package $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG bash -c "(pip install .[test] && pytest tests/); chown -R `id -u`:`id -g` /package"
     - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - dist
   tags:
     - spage
 #   only:
