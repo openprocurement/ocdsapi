@@ -92,7 +92,7 @@ def get_or_create_db(server, name):
 def find_max_date(items):
     if not items:
         return datetime.now().isoformat()
-    return max(items, key=operator.itemgetter('date'))
+    return max(items, key=operator.itemgetter('date')).get('date')
 
 
 def read_datafile(name):

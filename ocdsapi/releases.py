@@ -42,7 +42,7 @@ class ReleaseResource(BaseResource):
     @swagger.doc(release_doc)
     def get(self):
         return self.prepare_response()
-
+ 
 
 class ReleasesResource(BaseCollectionResource):
 
