@@ -1,19 +1,20 @@
 variables:
   COMPONENT_PROJECT_ID: 466
   COMPONENT_PROJECT_PIPELINE_TRIGGER: 5ec45d577ae29bc712f6e438d62e31
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
+  CI_DOCKER_REGISTRY: ocds-jenkins-master.office.quintagroup.com:5000
+  CI_DOCKER_IMAGE: ocdsapi
+  CI_DOCKER_TAG: ci
+
 
 before_script:
-  - python3 -V && python3 -m venv venv && source venv/bin/activate
+  - docker info
   - docker run -d --name $CI_COMMIT_REF_SLUG_$CI_JOB_ID -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -p 5984:5984 couchdb:1.7.2
 after_script:
   - docker rm -f "$CI_COMMIT_REF_SLUG_$CI_JOB_ID"
-  - pip list
 
 test:
   script:
-    - pip install .[test]
-    - pytest tests/ && python setup.py sdist
+    - docker run --network host --rm -u root -v `pwd`:/package:Z -w /package $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG bash -c "(pip install .[test] && pytest tests/); chown -R `id -u`:`id -g` /package"
     - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
   artifacts:
     expire_in: 1 week
