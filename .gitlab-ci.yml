@@ -22,5 +22,5 @@ test:
       - dist
   tags:
     - spage
-  only:
-    - master
+#   only:
+#     - master
