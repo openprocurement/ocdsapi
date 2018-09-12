@@ -17,7 +17,7 @@ after_script:
 
 test:
   script:
-    - docker run --network host --rm -u root -v `pwd`:/package:Z -w /package $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG bash -c "${RUN_TEST}""
+    - docker run --network host --rm -u root -v `pwd`:/package:Z -w /package $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG bash -c "${RUN_TEST}"
     - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
   tags:
     - spage
