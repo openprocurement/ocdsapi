@@ -132,7 +132,7 @@ class ReleaseStorage(object):
             ]
             if data:
                 last = data[-1]
-                return last, data[:-1]                
+                return last, data[:-1]
         return ("", "")
 
     def _inside(self, start_date, end_date):

@@ -66,7 +66,7 @@ class ReleasesResource(BaseCollectionResource):
             'publishedDate': find_max_date(response_data),
             **app.config['metainfo']
         }
-    
+
     @swagger.doc(releases_doc)
     def get(self):
         return self.prepare_response()
@@ -75,7 +75,7 @@ class ReleasesResource(BaseCollectionResource):
 def include(options):
 
     API.add_resource(
-        ReleasesResource, 
+        ReleasesResource,
         '/api/releases.json',
         endpoint='releases.json',
         resource_class_kwargs={"options": options}
@@ -86,4 +86,4 @@ def include(options):
         endpoint='release.json',
         resource_class_kwargs={"options": options}
     )
-    
+

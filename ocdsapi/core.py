@@ -9,7 +9,7 @@ from .application import APP
 class BaseResource(Resource):
 
     options = {}
-    
+
     def __init__(self, options={}):
         self.db = APP.db
         self._options = options
@@ -17,7 +17,7 @@ class BaseResource(Resource):
     def _get(self, args):
         # Override this
         return {}
-    
+
     def prepare_response(self):
         request_args = self.options.parse_args()
         item = self._get(request_args)

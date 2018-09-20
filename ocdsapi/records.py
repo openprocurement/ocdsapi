@@ -20,7 +20,7 @@ collection_options.add_argument("descending", type=bool)
 
 item_options = reqparse.RequestParser()
 item_options.add_argument("ocid",
-    type=str, 
+    type=str,
     required=True,
     )
 
@@ -67,7 +67,7 @@ class RecordsResource(BaseCollectionResource):
             'records': records,
             **app.config['metainfo']
         }
-    
+
     @swagger.doc(records_doc)
     def get(self):
         return self.prepare_response()
