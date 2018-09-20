@@ -9,6 +9,7 @@ import ocdsmerge
 DEFAULT_EXTENSIONS = [
     "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json"
 ]
+EXTENSIONS = []
 THIS = path.dirname(path.abspath(__file__))
 
 
@@ -58,7 +59,7 @@ def build_meta(options):
         'license': None,
         'publicationPolicy': None,
         'version': options.get('version', "1.1"),
-        'extensions': DEFAULT_EXTENSIONS
+        'extensions': EXTENSIONS
     }
 
     if 'metainfo.file' in options:
@@ -76,7 +77,8 @@ def build_meta(options):
             },
             'license': options.get('license'),
             'publicationPolicy': options.get('publicationPolicy'),
-            'version': options.get('version', "1.1")
+            'version': options.get('version', "1.1"),
+            'extensions': EXTENSIONS
         }
 
 
@@ -98,3 +100,14 @@ def find_max_date(items):
 def read_datafile(name):
     with open(path.join(THIS, 'doc', name)) as fd:
         return load(fd)
+
+
+def configure_extensions(options):
+    extensions = [
+        e for e in options.get('extensions', '').split('\n')
+        if e
+    ]
+    global EXTENSIONS
+    for ext in (extensions, DEFAULT_EXTENSIONS):
+        EXTENSIONS.extend(ext)
+    return EXTENSIONS
