@@ -1,0 +1,7 @@
+info:
+  title: OCDS API
+  description: Implementation of OCDS API
+  termsOfService: "https://docs.google.com"
+host: ocdsapi.host.io
+schemes:
+  - http
