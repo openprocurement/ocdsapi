@@ -4,7 +4,7 @@ variables:
   CI_DOCKER_REGISTRY: docker.io
   CI_DOCKER_IMAGE: spageorgia/ocdsapi
   CI_DOCKER_TAG: ci
-  RUN_TEST: "(pip install .[test] && pytest tests/) && (chown -R `id -u`:`id -g` /package && exit 0) || (chown -R `id -u`:`id -g` /package && exit 1)"
+  RUN_TEST: "(pip install .[test] && pytest tests/)"
 
 
 before_script:
@@ -13,6 +13,7 @@ before_script:
   - docker run -d --name $CI_COMMIT_REF_SLUG_$CI_JOB_ID -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=admin -p 5984:5984 couchdb:1.7.2
 after_script:
   - docker rm -f "$CI_COMMIT_REF_SLUG_$CI_JOB_ID"
+  - docker run --rm -u root -v `pwd`:/package:Z -w /package $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG bash -c "chown -R `id -u`:`id -g` /package"
   - docker logout  "$CI_DOCKER_REGISTRY"
 
 test:
