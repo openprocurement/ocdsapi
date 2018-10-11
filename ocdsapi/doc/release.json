@@ -1,6 +1,7 @@
 {
     "summary" : "Returns an OCDS release",
-    "description" : "This should return an OCDS release object. There is potential for releaseIds to be duplicated for a particular API.  If this is the case then the user should provide either a packageURL or an ocid in order to get an individual release.",
+    "produces": ["application/json"],
+    "description" : "An OSDS release object can be returned. Sometimes, a user’s release ID for an API may be duplicated by chance. In such instance the user has to know either a package URL or OC ID and therefore obtain an individual release ID. It is mandatory for each release to comprise such information as an OC ID, a unique release ID, a release tag and any other characteristics of the event to be provided to the users",
     "responses": {
         "200": {"description": "Single Release"}
     },

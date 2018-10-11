@@ -10,6 +10,9 @@ from ocdsapi.utils import build_meta, configure_extensions
 from pkg_resources import iter_entry_points
 
 
+DESCRIPTION = """
+This OCDS API is built based on Version 1.1  of OCDS that  provides a scheme for publishing releases and records about contracting processes. The OCDS API helps to  make  contracting processes more transparent and accountable by providing a comprehensive, filterable OCDS data library. It supports publication of multiple releases and records in bulk ‘packages’, or as individual files, accessible at their own URIs and it returns data in an easily interpretable and scrapable JSON format.
+"""
 APP = Flask('ocdsapi')
 CORS(APP)
 APP.wsgi_app = ProxyFix(APP.wsgi_app) # Fixed proto on nginx proxy
@@ -17,7 +20,7 @@ API = Api(
     APP,
     api_version='0.1',
     api_spec_url='/api/swagger',
-    description="OCDS api",
+    description=DESCRIPTION,
     )
 
 

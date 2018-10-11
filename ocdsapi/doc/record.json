@@ -1,6 +1,7 @@
 {
     "summary" : "Returns an OCDS record",
-    "description" : "This should return an OCDS record object.",
+    "produces": ["application/json"],
+    "description" : "This is an OCDS record object supplying a snapshot of the running state of the contracting process where he information from all the preceding releases is brought together. As soon as new information is introduced, it gets updated. At least one record must be present for each contracting process in order to furnish a full list of releases associated with this contracting process",
     "responses": {
         "200": {"description": "Single Record"}
     },
