@@ -14,12 +14,14 @@ DATEMODIFIED = ViewDefinition(
     'releases', 'datemodified_filter',
     map_fun=u"""function(doc) {emit(doc._id, doc.date);}"""
 )
-
 OCID = ViewDefinition(
     'releases', 'id_index',
     map_fun=u"""function(doc) {emit([doc._id, doc.ocid], doc.date);}"""
 )
-
+SINGLE_OCID = ViewDefinition(
+    'releases', 'ocid',
+    map_fun=u"""function(doc) {emit(doc.ocid, doc._id);}"""
+)
 ID = ViewDefinition(
     'releases', 'date_index',
     map_fun=u"""function(doc) {emit([doc.date, doc._id], doc.ocid);}"""
@@ -32,18 +34,18 @@ class ReleaseStorage(object):
         server = couchdb.Server(host_url)
         self.db = get_or_create_db(server, db_name)
 
-        ViewDefinition.sync_many(self.db, [OCID, ID, DATEMODIFIED])
+        ViewDefinition.sync_many(self.db, [OCID, ID, DATEMODIFIED, SINGLE_OCID])
         LOGGER.info("Starting storage: {}".format(
             self.db.info()
         ))
 
-    def _by_id(self, startkey, endkey):
+    def _by_id(self, startkey, endkey, **kw):
         responce = self.db.view(
             'releases/id_index',
             startkey=startkey,
             endkey=endkey,
             include_docs=True,
-            limit=1,
+            **kw
             )
         if responce.rows:
             for row in responce.rows:
@@ -55,17 +57,17 @@ class ReleaseStorage(object):
     def get_id(self, id_):
         startkey = (id_, '')
         endkey = (id_, 'xxxxxxxxxxx')
-        for release in self._by_id(startkey, endkey):
+        for release in self._by_id(startkey, endkey, limit=1):
             if release:
                 return release
 
     def get_ocid(self, ocid):
-        startkey = ('', ocid)
-        endkey = ('x' * 33, ocid)
-        return [
-            doc for doc in
-            self._by_id(startkey, endkey)
-        ]
+        resp = self.db.view('releases/ocid', key=ocid, include_docs=True).rows
+        if resp:
+            return [
+                prepare_responce_doc(row.doc)
+                for row in resp
+            ]
 
     def _by_date(self, **kw):
         for item in self.db.view(
