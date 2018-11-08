@@ -1,94 +1,29 @@
-from datetime import datetime
-from json import load
-from os import path
 import operator
-import yaml
 import ocdsmerge
+import json
+import yaml
+from datetime import datetime
+from collections import defaultdict
 
 
-DEFAULT_EXTENSIONS = [
-    "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json"
-]
-EXTENSIONS = []
-THIS = path.dirname(path.abspath(__file__))
+BASE = {
+    'publisher': {
+    'name': None,
+    'scheme': None,
+    'uri': None
+    },
+    'license': None,
+    'publicationPolicy': None,
+    'version': "1.1",
+    'extensions': []
+}
 
 
-def prepare_record(releases):
-    if not releases:
-        return {}
-    # import pdb; pdb.set_trace()
-    ocids = {rel['ocid'] for rel in releases}
-    if len(ocids) > 1:
-        raise ValueError("Different ocids in same record {}".format(
-            ocids
-        ))
-    record = {
-        'releases': releases,
-        'compiledRelease': ocdsmerge.merge(releases),
-        'versionedRelease': ocdsmerge.merge_versioned(releases),
-        'ocid': ocids.pop(),
-    }
-    return record
-
-
-def prepare_responce_doc(doc):
-    doc.pop('_rev', '')
-    doc.pop('$schema', '')
-    if doc.get('_id'):
-        doc['id'] = doc.pop('_id')
-    return doc
-
-
-def ids_only(doc):
-    return {
-        "id": doc.pop('id'),
-        "ocid": doc.pop('ocid')
-    }
-
-
-def build_meta(options):
-    """
-    Prepare package metadata(license, publicationPolicy ...)
-    """
-    base = {
-        'publisher': {
-            'name': None,
-            'scheme': None,
-            'uri': None
-        },
-        'license': None,
-        'publicationPolicy': None,
-        'version': options.get('version', "1.1"),
-        'extensions': EXTENSIONS
-    }
-
-    if 'metainfo.file' in options:
-        info = options['metainfo.file']
-        with open(info) as _in:
-            metainfo = yaml.load(_in)
-        base.update(metainfo)
-        return base
-    else:
-        return {
-            'publisher': {
-                'name': options.get('publisher.name'),
-                'scheme': options.get('publisher.scheme'),
-                'uri': options.get('publisher.uri')
-            },
-            'license': options.get('license'),
-            'publicationPolicy': options.get('publicationPolicy'),
-            'version': options.get('version', "1.1"),
-            'extensions': EXTENSIONS
-        }
-
-
-def get_or_create_db(server, name):
-    """
-    Return existing db instance or create new one
-    """
-    if name not in server:
-        server.create(name)
-    return server[name]
+def read_datafile(path):
+    loader = json.load if path.endswith('json')\
+        else yaml.load
+    with open(path) as fd:
+        return loader(fd)
 
 
 def find_max_date(items):
@@ -97,17 +32,83 @@ def find_max_date(items):
     return max(items, key=operator.itemgetter('date')).get('date')
 
 
-def read_datafile(name):
-    with open(path.join(THIS, 'doc', name)) as fd:
-        return load(fd)
+def prepare_record(ocid, releases, merge_rules):
+    if not releases:
+        return {}
+
+    record = {
+        'releases': releases,
+        'compiledRelease': ocdsmerge.merge(
+            releases, merge_rules=merge_rules
+        ),
+        'versionedRelease': ocdsmerge.merge_versioned(
+            releases, merge_rules=merge_rules
+        ),
+        'ocid': ocid,
+    }
+    return record
 
 
-def configure_extensions(options):
-    extensions = [
-        e for e in options.get('extensions', '').split('\n')
-        if e
-    ]
-    global EXTENSIONS
-    for ext in (extensions, DEFAULT_EXTENSIONS):
-        EXTENSIONS.extend(ext)
-    return EXTENSIONS
+def format_release_package(request, pager, ids_only=False):
+    if ids_only:
+        releases = [
+            {"id": item[0], "ocid": item[1]}
+            for item in pager.items
+        ]
+        date = max((item[2] for item in pager.items)).isoformat()
+    else:
+        releases = [item.value for item in pager.items]
+        date = find_max_date(releases)
+    next_page = pager.next_page if pager.next_page else pager.page,
+    links = {
+        'total': pager.page_count,
+        'next': request.route_url('releases.json', _query=(('page', next_page),))
+    }
+    if pager.previous_page:
+        links['prev'] = request.route_url(
+            'releases.json', _query=(('page', pager.previous_page),)
+        )
+    return {
+        **BASE,
+        **request.registry.publisher,
+        'releases': releases,
+        'publishedDate': date,
+        'uri': request.current_route_url(),
+        'links': links
+    }
+
+
+def format_record_package(request, pager):
+    grouped = defaultdict(list)
+    for release in pager.items:
+        grouped[release.ocid].append(release.value)
+    records = []
+    dates = []
+    for ocid, releases in grouped.items():
+        dates.append(find_max_date(releases))
+        records.append(
+            prepare_record(
+                ocid,
+                releases,
+                request.registry.merge_rules
+            )
+        )
+
+    date = max(dates)
+    next_page = pager.next_page if pager.next_page else pager.page,
+    links = {
+        'total': pager.page_count,
+        'next': request.route_url('records.json', _query=(('page', next_page),))
+    }
+    if pager.previous_page:
+        links['prev'] = request.route_url(
+            'records.json', _query=(('page', pager.previous_page),)
+        )
+    return {
+        **BASE,
+        **request.registry.publisher,
+        'records': records,
+        'publishedDate': date,
+        'uri': request.current_route_url(),
+        'links': links
+    }

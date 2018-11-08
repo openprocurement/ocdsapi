@@ -1,54 +1,70 @@
+import os
+
 from setuptools import setup, find_packages
 
-PACKAGE = 'ocdsapi'
-DESCRIPTION = """
-    Application for serving OCDS releases
-"""
-VERSION = '0.2.2'
-INSTALL_REQUIRES = [
-    'setuptools',
-    'CouchDB',
-    'requests',
-    'Flask',
-    'flask-restful',
-    'flask-cors',
-    'flask-restful-swagger-2',
-    'arrow',
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.txt')) as f:
+    README = f.read()
+with open(os.path.join(here, 'CHANGES.txt')) as f:
+    CHANGES = f.read()
+
+requires = [
+    'plaster_pastedeploy',
+    'pyramid',
+    'waitress',
+    'alembic',
+    'celery',
+    'cornice',
+    'cornice_swagger',
+    'pyramid_retry',
+    'pyramid_tm',
+    'pyramid_celery',
+    'paginate',
+    'paginate_sqlalchemy',
+    'SQLAlchemy',
+    'transaction',
+    'psycopg2cffi',
+    'zope.sqlalchemy',
     'ocdsmerge',
-    "gunicorn",
-    'pastedeploy',
-    'iso8601',
-    'gevent',
-    'pyyaml'
+    'simplejson',
+    'pyyaml',
+    'fastjsonschema'
 ]
-TEST_REQUIRES = [
-    'pytest',
-    "pytest-flask",
+
+tests_require = [
+    'WebTest >= 1.3.1',  # py3 compat
+    'pytest >= 3.7.4',
     'pytest-cov',
-    'munch',
 ]
 
-EXTRA = INSTALL_REQUIRES + TEST_REQUIRES
-ENTRY_POINTS = {
-    'paste.app_factory': [
-        'main = ocdsapi.application:make_paste_application',
+setup(
+    name='ocdsapi',
+    version='0.0',
+    description='ocdsapi',
+    long_description=README + '\n\n' + CHANGES,
+    classifiers=[
+        'Programming Language :: Python',
+        'Framework :: Pyramid',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
-    'ocdsapi.resources': [
-        'releases = ocdsapi.releases:include',
-        'records  = ocdsapi.records:include'
-    ]
-}
-
-setup(name=PACKAGE,
-      version=VERSION,
-      description=DESCRIPTION,
-      author='Quintagroup, Ltd.',
-      author_email='info@quintagroup.com',
-      license='Apache License 2.0',
-      include_package_data=True,
-      packages=find_packages(),
-      zip_safe=False,
-      install_requires=INSTALL_REQUIRES,
-      extras_require={"test": EXTRA},
-      entry_points=ENTRY_POINTS
-      )
+    author='',
+    author_email='',
+    url='',
+    keywords='web pyramid pylons',
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=False,
+    extras_require={
+        'testing': tests_require,
+    },
+    install_requires=requires,
+    entry_points={
+        'paste.app_factory': [
+            'main = ocdsapi.app:main',
+        ],
+        'console_scripts': [
+            'initialize_ocdsapi_db=ocdsapi.scripts.initialize_db:main',
+        ],
+    },
+)
