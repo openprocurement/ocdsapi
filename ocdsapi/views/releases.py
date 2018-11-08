@@ -1,89 +1,67 @@
-from urllib.parse import urljoin
-from flask import request
-from flask import url_for
-from flask import current_app as app
-from flask_restful import reqparse
-from flask_restful import marshal
-from flask_restful import abort
-from flask_restful_swagger_2 import swagger
+from cornice.resource import resource, view
+from sqlalchemy import tuple_
+from itertools import chain
+from paginate_sqlalchemy import SqlalchemyOrmPage
+from ocdsapi.models import Release
+from ocdsapi.validation import validate_release_bulk, validate_release_id
 
-from .core import BaseResource, BaseCollectionResource
-from .application import API
-from .utils import prepare_responce_doc,\
-    ids_only, find_max_date, read_datafile
+YES = frozenset(('true', '1', 'y', 'yes', 't'))
 
+@resource(
+    name='releases.json',
+    path='/releases.json',
+    description=""
+)
+class ReleasesResource:
+    def __init__(self, request, context=None):
+        self.request = request
+        self.page_size = request.registry.page_size
 
-collection_options = reqparse.RequestParser()
-collection_options.add_argument("idsOnly", type=bool)
-collection_options.add_argument("page", type=str)
-collection_options.add_argument("releaseID", type=str)
-collection_options.add_argument("descending", type=bool)
+    @view(validators=(validate_release_bulk))
+    def post(self):
+        session = self.request.dbsession
+        releases = self.request.validated['releases']
+        query = session.query(Release.id).filter(tuple_(Release.id).in_(tuple(releases.keys())))
+        existing = set(chain(*query.all()))
+        for release_id in existing.symmetric_difference(set(releases.keys())):
+            new = releases.get(release_id)
+            if new:
+                session.add(new)
+        self.request.tm.commit()
 
-item_options = reqparse.RequestParser()
-item_options.add_argument(
-    "releaseID",
-    type=str,
-    required=True,
-    )
-
-releases_doc = read_datafile('releases.json')
-release_doc = read_datafile('release.json')
-
-
-class ReleaseResource(BaseResource):
-
-    options = item_options
-
-    def _get(self, request_args):
-        if not request_args.releaseID:
-            return {}
-        return self.db.get_id(request_args.releaseID)
-
-    @swagger.doc(release_doc)
+    @view()
     def get(self):
-        return self.prepare_response()
- 
-
-class ReleasesResource(BaseCollectionResource):
-
-    resource = 'releases.json'
-    options = collection_options
-
-    def _prepare(self, args, response_data):
-        if args.idsOnly:
-            releases = [
-                ids_only(item['doc'])
-                for item in response_data
-            ]
+        page_number_requested = self.request.params.get('page') or 1
+        ids_only = self.request.params.get('idsOnly', '')\
+                   and self.request.params.get('idsOnly').lower() in YES
+        if ids_only:
+            pager = SqlalchemyOrmPage(
+                self.request.dbsession.query(
+                    Release.id, Release.ocid, Release.date
+                ),
+                page=int(page_number_requested),
+                items_per_page=self.page_size
+            )
         else:
-            releases = [
-                item['doc']
-                for item in response_data
-            ]
-        return {
-            'releases': releases,
-            'uri': self.prepare_uri(),
-            'publishedDate': find_max_date(response_data),
-            **app.config['metainfo']
-        }
+            pager = SqlalchemyOrmPage(
+                self.request.dbsession.query(Release),
+                page=int(page_number_requested),
+                items_per_page=self.page_size
+            )
+        return self.request.release_package(pager, ids_only)
 
-    @swagger.doc(releases_doc)
+
+@resource(
+    name='release.json',
+    path='/release.json',
+    description=''
+)
+class ReleaseResource:
+
+    def __init__(self, request, context=None):
+        self.request = request
+
+    @view(validators=(validate_release_id))
     def get(self):
-        return self.prepare_response()
-
-
-def include(options):
-
-    API.add_resource(
-        ReleasesResource,
-        '/api/releases.json',
-        endpoint='releases.json',
-        resource_class_kwargs={"options": options}
-    )
-    API.add_resource(
-        ReleaseResource,
-        '/api/release.json',
-        endpoint='release.json',
-        resource_class_kwargs={"options": options}
-    )
-
+        release = self.request.dbsession.query(Release).filter(Release.id==id).first()
+        return release.value
