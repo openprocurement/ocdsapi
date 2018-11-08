@@ -93,8 +93,7 @@ def format_record_package(request, pager):
                 request.registry.merge_rules
             )
         )
-
-    date = max(dates)
+    date = max(dates) if dates else datetime.now().isoformat()
     next_page = pager.next_page if pager.next_page else pager.page,
     links = {
         'total': pager.page_count,

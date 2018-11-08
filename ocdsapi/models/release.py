@@ -15,13 +15,14 @@ class Release(Base):
 
     __tablename__ = 'releases'
 
-    id = Column(String, primary_key=True)
+    release_id = Column(String, primary_key=True)
     ocid = Column(String)
     date = Column(DateTime)
-    released = Column(Boolean, default=False)
+    in_static = Column(Boolean, default=False)
     value = Column(JSONB)
 
 
 Index('ocids', Release.ocid)
-Index('unreleased', Release.released, postgresql_where=Release.released==False)
+Index('ids', Release.release_id)
+Index('unreleased', Release.in_static, postgresql_where=Release.in_static==False)
 Index('date_released', Release.date)
