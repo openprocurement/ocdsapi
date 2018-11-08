@@ -21,13 +21,40 @@ class ReleasesResource:
     def post(self):
         session = self.request.dbsession
         releases = self.request.validated['releases']
-        query = session.query(Release.id).filter(tuple_(Release.id).in_(tuple(releases.keys())))
+        query = (session
+                 .query(Release.release_id)
+                 .filter(Release.release_id.in_(tuple(releases.keys()))))
         existing = set(chain(*query.all()))
-        for release_id in existing.symmetric_difference(set(releases.keys())):
-            new = releases.get(release_id)
-            if new:
-                session.add(new)
-        self.request.tm.commit()
+        result = {}
+        for release_id in releases.keys():
+            if release_id in existing:
+                result[release_id] = {
+                    'status': 'error',
+                    'description': "{} already exists".format(release_id)
+                }
+            else:
+                release_raw = releases.get(release_id)
+                release = Release(
+                    release_id=release_raw['id'],
+                    ocid=release_raw['ocid'],
+                    date=release_raw.get('date'),
+                    value=release_raw
+                )
+
+                try:
+                    session.add(release)
+                    result[release_id] = {
+                        "status": "ok",
+                        "description": 'ok'
+                    }
+                except Exception as e:
+                    result[release_id] = {
+                        'status': 'error',
+                        'description': e.message
+                    }
+
+        return result
+
 
     @view()
     def get(self):
@@ -37,7 +64,7 @@ class ReleasesResource:
         if ids_only:
             pager = SqlalchemyOrmPage(
                 self.request.dbsession.query(
-                    Release.id, Release.ocid, Release.date
+                    Release.release_id, Release.ocid, Release.date
                 ),
                 page=int(page_number_requested),
                 items_per_page=self.page_size
@@ -63,5 +90,6 @@ class ReleaseResource:
 
     @view(validators=(validate_release_id))
     def get(self):
-        release = self.request.dbsession.query(Release).filter(Release.id==id).first()
+        id_ = self.request.validated['release_id']
+        release = self.request.dbsession.query(Release).filter(Release.release_id==id_).first()
         return release.value
