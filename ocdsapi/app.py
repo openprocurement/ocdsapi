@@ -2,7 +2,7 @@ import fastjsonschema
 from pyramid.config import Configurator, ConfigurationError
 from ocdsmerge.merge import process_schema
 from ocdsapi.utils import format_release_package,\
-    prepare_record, read_datafile, format_record_package
+    read_datafile, format_record_package
 
 
 def main(global_config, **settings):
