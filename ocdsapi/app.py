@@ -1,4 +1,6 @@
 import fastjsonschema
+import simplejson
+from pyramid.renderers import JSON
 from pyramid.config import Configurator, ConfigurationError
 from ocdsmerge.merge import process_schema
 from ocdsapi.utils import format_release_package,\
@@ -13,6 +15,7 @@ def main(global_config, **settings):
         config.include('cornice_swagger')
         config.include('pyramid_celery')
         config.include('.models')
+        config.add_renderer('simplejson', JSON(serializer=simplejson.dumps))
         config.add_request_method(format_release_package, name='release_package')
         config.add_request_method(format_record_package, name='record_package')
         config.registry.page_size = int(settings.get('api.page_size', 100))
