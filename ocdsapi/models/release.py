@@ -6,8 +6,7 @@ from sqlalchemy import (
     DateTime,
     Boolean,
 )
-from sqlalchemy import func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSON
 from .meta import Base
 
 
@@ -19,7 +18,7 @@ class Release(Base):
     ocid = Column(String)
     date = Column(DateTime)
     in_static = Column(Boolean, default=False)
-    value = Column(JSONB)
+    value = Column(JSON)
 
 
 Index('ocids', Release.ocid)
