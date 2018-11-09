@@ -49,6 +49,16 @@ def prepare_record(ocid, releases, merge_rules):
     return record
 
 
+def wrap_in_release_package(request, releases, date):
+    return {
+        **BASE,
+        **request.registry.publisher,
+        'releases': releases,
+        'publishedDate': date,
+        'uri': request.current_route_url(),
+    }
+
+
 def format_release_package(request, pager, ids_only=False):
     if ids_only:
         releases = [
@@ -68,14 +78,9 @@ def format_release_package(request, pager, ids_only=False):
         links['prev'] = request.route_url(
             'releases.json', _query=(('page', pager.previous_page),)
         )
-    return {
-        **BASE,
-        **request.registry.publisher,
-        'releases': releases,
-        'publishedDate': date,
-        'uri': request.current_route_url(),
-        'links': links
-    }
+    package = wrap_in_release_package(request, releases, date)
+    package['links'] = links
+    return package
 
 
 def format_record_package(request, pager, ids_only=False):
@@ -108,11 +113,28 @@ def format_record_package(request, pager, ids_only=False):
             {"id": r['compiledRelease']['id'], "ocid": r['ocid']}
             for r in records
         ]
+
+    linked_releases = [
+        {
+            "url": request.route_url('release.json', _query=(('releaseID', item.release_id),)),
+            "date": item.date.isoformat()
+        }
+        for item in pager.items
+    ]
+    return wrap_in_record_package(
+        request=request,
+        linked_releases=linked_releases,
+        records=records,
+        date=date
+    )
+
+
+def wrap_in_record_package(*, request, linked_releases, date, records):
     return {
         **BASE,
         **request.registry.publisher,
         'records': records,
         'publishedDate': date,
         'uri': request.current_route_url(),
-        'links': links
+        'releases': linked_releases
     }
