@@ -20,8 +20,5 @@ class Release(Base):
     in_static = Column(Boolean, default=False)
     value = Column(JSON)
 
-
 Index('ocids', Release.ocid)
-Index('ids', Release.release_id)
 Index('unreleased', Release.in_static, postgresql_where=Release.in_static==False)
-Index('date_released', Release.date)
