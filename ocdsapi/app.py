@@ -21,14 +21,6 @@ def main(global_config, **settings):
         if settings.get('api.swagger'):
             swagger_data.update(read_datafile(settings.get('api.swagger')))
 
-        # config.cornice_enable_openapi_view(
-        #     api_path='/swagger.json',
-        #     title=swagger_data['title'],
-        #     version=swagger_data['version'],
-        #     description=swagger_data['description'],
-        #     info=swagger_data,
-        #     summary_docstrings=True
-        # )
         config.registry.settings['api_specs'] = swagger_data
         config.add_route('cornice_swagger.open_api_path', '/swagger.json')
         config.cornice_enable_openapi_explorer(api_explorer_path='/swagger.ui')
