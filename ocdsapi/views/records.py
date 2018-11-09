@@ -18,7 +18,7 @@ class RecordsResource:
         self.query = request.dbsession.query(Release).order_by(Release.ocid)
         self.page_size = request.registry.page_size
 
-    @view()
+    @view(renderer='simplejson')
     def get(self):
         page_number_requested = self.request.params.get('page') or 1
         ids_only = self.request.params.get('idsOnly', '')\
@@ -41,7 +41,7 @@ class RecordResource:
     def __init__(self, request, context=None):
         self.request = request
 
-    @view(validators=(validate_ocid,))
+    @view(validators=(validate_ocid,), renderer='simplejson')
     def get(self):
         ocid = self.request.validated['ocid']
         releases = [

@@ -54,7 +54,7 @@ class ReleasesResource:
 
         return result
 
-    @view()
+    @view(renderer='simplejson')
     def get(self):
         page_number_requested = self.request.params.get('page') or 1
         ids_only = self.request.params.get('idsOnly', '')\
@@ -69,7 +69,7 @@ class ReleasesResource:
             )
         else:
             pager = SqlalchemyOrmPage(
-                self.request.dbsession.query(Release),
+                self.request.dbsession.query(Release.release_id, Release.value),
                 page=int(page_number_requested),
                 items_per_page=self.page_size
             )
@@ -86,7 +86,7 @@ class ReleaseResource:
     def __init__(self, request, context=None):
         self.request = request
 
-    @view(validators=(validate_release_id))
+    @view(validators=(validate_release_id), renderer='simplejson')
     def get(self):
         id_ = self.request.validated['release_id']
         release = self.request.dbsession.query(Release).filter(Release.release_id==id_).first()
