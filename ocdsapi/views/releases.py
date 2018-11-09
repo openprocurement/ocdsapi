@@ -1,11 +1,10 @@
 from cornice.resource import resource, view
-from sqlalchemy import tuple_
 from itertools import chain
 from paginate_sqlalchemy import SqlalchemyOrmPage
 from ocdsapi.models import Release
 from ocdsapi.validation import validate_release_bulk, validate_release_id
+from ocdsapi.constants import YES
 
-YES = frozenset(('true', '1', 'y', 'yes', 't'))
 
 @resource(
     name='releases.json',
@@ -54,7 +53,6 @@ class ReleasesResource:
                     }
 
         return result
-
 
     @view()
     def get(self):

@@ -78,7 +78,7 @@ def format_release_package(request, pager, ids_only=False):
     }
 
 
-def format_record_package(request, pager):
+def format_record_package(request, pager, ids_only=False):
     grouped = defaultdict(list)
     for release in pager.items:
         grouped[release.ocid].append(release.value)
@@ -103,6 +103,11 @@ def format_record_package(request, pager):
         links['prev'] = request.route_url(
             'records.json', _query=(('page', pager.previous_page),)
         )
+    if ids_only:
+        records = [
+            {"id": r['compiledRelease']['id'], "ocid": r['ocid']}
+            for r in records
+        ]
     return {
         **BASE,
         **request.registry.publisher,

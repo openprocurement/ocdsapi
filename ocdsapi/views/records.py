@@ -3,6 +3,7 @@ from paginate_sqlalchemy import SqlalchemyOrmPage
 from ocdsapi.models import Release
 from ocdsapi.utils import prepare_record
 from ocdsapi.validation import validate_ocid
+from ocdsapi.constants import YES
 
 
 @resource(
@@ -20,12 +21,14 @@ class RecordsResource:
     @view()
     def get(self):
         page_number_requested = self.request.params.get('page') or 1
+        ids_only = self.request.params.get('idsOnly', '')\
+            and self.request.params.get('idsOnly').lower() in YES
         pager = SqlalchemyOrmPage(
             self.query,
             page=int(page_number_requested),
             items_per_page=self.page_size
         )
-        return self.request.record_package(pager)
+        return self.request.record_package(pager, ids_only)
 
 
 @resource(
