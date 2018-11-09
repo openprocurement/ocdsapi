@@ -6,7 +6,7 @@ def validate_release_bulk(request, **kw):
     data = request.json_body
     releases = data.get('releases')
     if not releases:
-        request.errors.add('data', 'releases', 'releases data missing')
+        request.errors.add('body', 'releases', 'releases data missing')
     validator = request.registry.validator
     request.validated['releases'] = {}
     for release in releases:
@@ -15,7 +15,7 @@ def validate_release_bulk(request, **kw):
             release['id'] = release_id
             request.validated['releases'][release_id] = validator(release)
         except JsonSchemaException as e:
-            request.errors.add("data", "release", e.message)
+            request.errors.add("body", "release", e.message)
 
 
 def validate_ocid(request, **kw):
@@ -23,6 +23,7 @@ def validate_ocid(request, **kw):
     if not ocid:
         request.errors.add("querystring", 'ocid', 'ocid query argument missing')
     request.validated['ocid'] = ocid
+
 
 def validate_release_id(request, **kw):
     id_ = request.params.get('releaseID')
