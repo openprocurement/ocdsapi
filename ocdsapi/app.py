@@ -1,10 +1,9 @@
 import fastjsonschema
 import simplejson
-import os.path
 from pyramid.renderers import JSON
 from pyramid.config import Configurator, ConfigurationError
 from ocdsmerge.merge import process_schema
-from ocdsapi.constants import SWAGGER
+from ocdsapi.constants import SWAGGER, RECORD
 from ocdsapi.utils import format_release_package,\
     read_datafile, format_record_package
 
@@ -33,6 +32,10 @@ def main(global_config, **settings):
         config.registry.publisher = read_datafile(settings.get('api.publisher'))
         config.registry.schema = read_datafile(settings.get('api.schema'))
         config.registry.merge_rules = process_schema(settings.get('api.schema'))
+        config.registry.models = {
+            'Release': config.registry.schema,
+            'Record': RECORD
+        }
 
 
         config.registry.validator = fastjsonschema.compile(config.registry.schema)

@@ -1,7 +1,8 @@
 import cornice
 import cornice_swagger
 from pyramid.view import view_config
-from ocdsapi.constants import DESCRIPTIONS, RESPONSES
+from ocdsapi.constants import DESCRIPTIONS, RESPONSES, RECORD
+from deep_merge import merge
 
 
 @view_config(
@@ -20,9 +21,7 @@ def swagger_json(request):
     base = swagger.generate(**info, info=info)
     for path in base['paths'].keys():
         for doc in (DESCRIPTIONS, RESPONSES):
-            base['paths'][path].update(
-                doc[path.lstrip('/')]
-            )
-    base['definitions'] = {}
-    base['definitions']['Release'] = request.registry.schema
+            merge(base['paths'][path], doc[path.lstrip('/')])
+
+    base['models'] = request.registry.models
     return base

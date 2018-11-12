@@ -42,7 +42,7 @@
       "type": "array",
       "minItems": 1,
       "items": {
-        "$ref": "#/definitions/Release"
+        "$ref": "#/models/Release"
       },
       "uniqueItems": true
     },
