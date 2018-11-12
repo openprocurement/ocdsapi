@@ -36,48 +36,48 @@
         "scheme": {
           "title": "Scheme",
           "description": "The scheme that holds the unique identifiers used to identify the item being identified.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "oneOf": [
+              {"type": "string"},
+              {"type": "null"}
+            ]
         },
         "uid": {
           "title": "uid",
           "description": "The unique ID for this entity under the given ID scheme. Note the use of 'uid' rather than 'id'. See issue #245.",
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+              {"type": "string"},
+              {"type": "null"}
           ]
         },
         "uri": {
           "title": "URI",
           "description": "A URI to identify the publisher.",
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+              {"type": "string"},
+              {"type": "null"}
           ],
           "format": "uri"
         }
       },
-      "required": [
+    "required": [
         "name"
       ]
     },
     "license": {
       "title": "License",
       "description": "A link to the license that applies to the data in this data package. [Open Definition Conformant](http://opendefinition.org/licenses/) licenses are strongly recommended. The canonical URI of the license should be used. Documents linked from this file may be under other license conditions.",
-      "type": [
-        "string",
-        "null"
+      "oneOf": [
+        {"type": "string"},
+        {"type": "null"}
       ],
       "format": "uri"
     },
     "publicationPolicy": {
       "title": "Publication policy",
       "description": "A link to a document describing the publishers publication policy.",
-      "type": [
-        "string",
-        "null"
+      "oneOf": [
+        {"type": "string"},
+        {"type": "null"}
       ],
       "format": "uri"
     },
