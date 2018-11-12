@@ -1,5 +1,6 @@
 import hashlib
 from json import JSONDecodeError
+from simplejson import loads
 from fastjsonschema import JsonSchemaException
 
 
@@ -9,16 +10,23 @@ def validate_release_bulk(request, **kw):
         releases = data.get('releases')
         if not releases:
             request.errors.add('body', 'releases', 'releases data missing')
+            return
+        if not isinstance(releases, list):
+            request.errors.add('body', 'releases', 'releases data is not an iterator')
+            return
         validator = request.registry.validator
-        request.validated['releases'] = {}
+        request.validated['releases'] = {
+            'ok': {},
+            'error': {}
+        }
         for release in releases:
             release.pop('id', '') # can change
             release_id = hashlib.md5(str(release).encode('utf-8')).hexdigest()
             release['id'] = release_id
             try:
-                request.validated['releases'][release_id] = validator(release)
+                request.validated['releases']['ok'][release_id] = validator(release)
             except JsonSchemaException as e:
-                request.errors.add("body", "release", e.message)
+                request.validated['releases']['error'][release_id] = e.message
     except JSONDecodeError as e:
         request.errors.add("body", "releases", "Invalid json content")
 

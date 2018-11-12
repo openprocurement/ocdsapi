@@ -24,17 +24,18 @@ class ReleasesResource:
         releases = self.request.validated['releases']
         query = (session
                  .query(Release.release_id)
-                 .filter(Release.release_id.in_(tuple(releases.keys()))))
+                 .filter(Release.release_id.in_(tuple(releases['ok'].keys()))))
         existing = set(chain(*query.all()))
         result = {}
-        for release_id in releases.keys():
+        oks = releases['ok']
+        for release_id in oks.keys():
             if release_id in existing:
                 result[release_id] = {
                     'status': 'error',
                     'description': "{} already exists".format(release_id)
                 }
             else:
-                release_raw = releases.get(release_id)
+                release_raw = oks.get(release_id)
                 release = Release(
                     release_id=release_raw['id'],
                     ocid=release_raw['ocid'],
@@ -53,7 +54,7 @@ class ReleasesResource:
                         'status': 'error',
                         'description': e.message
                     }
-
+        result.update(releases['error'])
         return result
 
     @view(renderer='simplejson')
