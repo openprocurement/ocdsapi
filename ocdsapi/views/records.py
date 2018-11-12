@@ -1,3 +1,4 @@
+import operator
 from cornice.resource import resource, view
 from paginate_sqlalchemy import SqlalchemyOrmPage
 from ocdsapi.models import Release
@@ -63,7 +64,7 @@ class RecordResource:
         ]
         return wrap_in_record_package(
             request=self.request,
-            linked_releases=linked_releases,
+            linked_releases=sorted(linked_releases, key=operator.itemgetter('date')),
             records=[record],
             date=find_max_date(releases)
         )

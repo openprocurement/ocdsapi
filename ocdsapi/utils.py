@@ -37,7 +37,7 @@ def prepare_record(ocid, releases, merge_rules):
         return {}
 
     record = {
-        'releases': releases,
+        'releases': sorted(releases, key=operator.itemgetter('date')),
         'compiledRelease': ocdsmerge.merge(
             releases, merge_rules=merge_rules
         ),
