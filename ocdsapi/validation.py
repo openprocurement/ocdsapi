@@ -12,6 +12,7 @@ def validate_release_bulk(request, **kw):
         validator = request.registry.validator
         request.validated['releases'] = {}
         for release in releases:
+            release.pop('id', '') # can change
             release_id = hashlib.md5(str(release).encode('utf-8')).hexdigest()
             release['id'] = release_id
             try:
