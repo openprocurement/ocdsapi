@@ -1,11 +1,13 @@
 import fastjsonschema
 import simplejson
 from pyramid.renderers import JSON
+from pyramid.authorization import ACLAuthorizationPolicy
+from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid.config import Configurator, ConfigurationError
 from ocdsmerge.merge import process_schema
 from ocdsapi.constants import SWAGGER, RECORD
 from ocdsapi.utils import format_release_package,\
-    read_datafile, format_record_package
+    read_datafile, format_record_package, check_credentials
 
 
 def main(global_config, **settings):
@@ -34,6 +36,11 @@ def main(global_config, **settings):
             'Release': config.registry.schema,
             'Record': RECORD
         }
+        config.set_authorization_policy(ACLAuthorizationPolicy())
+        tokens = [t.strip() for t in settings.get('api.tokens', '').split(',')]
+        if tokens:
+            config.registry.tokens = frozenset(tokens)
+        config.set_authentication_policy(BasicAuthAuthenticationPolicy(check_credentials))
         config.registry.validator = fastjsonschema.compile(config.registry.schema)
         config.scan()
     return config.make_wsgi_app()

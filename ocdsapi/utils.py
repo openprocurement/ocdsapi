@@ -4,6 +4,10 @@ import json
 import yaml
 from datetime import datetime
 from collections import defaultdict
+from pyramid.security import (
+    Allow,
+    Everyone,
+)
 
 
 BASE = {
@@ -138,3 +142,20 @@ def wrap_in_record_package(*, request, linked_releases, date, records):
         'uri': request.current_route_url(),
         'releases': linked_releases
     }
+
+
+def check_credentials(username, password, request):
+    tokens = request.registry.tokens
+    if (username in tokens) or (password in tokens):
+        return ['worker']
+
+
+class Root:
+    __acl__ = [
+        (Allow, 'worker', 'create'),
+        (Allow, Everyone, 'view')
+    ]
+
+
+def factory(request):
+    return Root()
