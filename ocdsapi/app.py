@@ -14,6 +14,7 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     with Configurator(settings=settings) as config:
+        config.route_prefix = 'api'
         config.include('cornice')
         config.include('cornice_swagger')
         swagger_data = SWAGGER
