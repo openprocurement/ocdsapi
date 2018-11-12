@@ -1,27 +1,32 @@
 import hashlib
+from json import JSONDecodeError
 from fastjsonschema import JsonSchemaException
 
 
 def validate_release_bulk(request, **kw):
-    data = request.json_body
-    releases = data.get('releases')
-    if not releases:
-        request.errors.add('body', 'releases', 'releases data missing')
-    validator = request.registry.validator
-    request.validated['releases'] = {}
-    for release in releases:
-        try:
+    try:
+        data = request.json_body
+        releases = data.get('releases')
+        if not releases:
+            request.errors.add('body', 'releases', 'releases data missing')
+        validator = request.registry.validator
+        request.validated['releases'] = {}
+        for release in releases:
             release_id = hashlib.md5(str(release).encode('utf-8')).hexdigest()
             release['id'] = release_id
-            request.validated['releases'][release_id] = validator(release)
-        except JsonSchemaException as e:
-            request.errors.add("body", "release", e.message)
+            try:
+                request.validated['releases'][release_id] = validator(release)
+            except JsonSchemaException as e:
+                request.errors.add("body", "release", e.message)
+    except JSONDecodeError as e:
+        request.errors.add("body", "releases", "Invalid json content")
 
 
 def validate_ocid(request, **kw):
     ocid = request.params.get('ocid')
     if not ocid:
         request.errors.add("querystring", 'ocid', 'ocid query argument missing')
+        return
     request.validated['ocid'] = ocid
 
 
