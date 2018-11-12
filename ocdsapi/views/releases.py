@@ -78,6 +78,7 @@ class ReleasesResource:
             )
         return self.request.release_package(pager, ids_only)
 
+
 @resource(
     name='release.json',
     path='/release.json',

@@ -8,8 +8,6 @@ from ocdsapi.utils import format_release_package,\
     read_datafile, format_record_package
 
 
-
-
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -36,8 +34,6 @@ def main(global_config, **settings):
             'Release': config.registry.schema,
             'Record': RECORD
         }
-
-
         config.registry.validator = fastjsonschema.compile(config.registry.schema)
         config.scan()
     return config.make_wsgi_app()
