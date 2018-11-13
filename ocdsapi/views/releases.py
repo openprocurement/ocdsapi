@@ -18,7 +18,6 @@ class ReleasesResource:
 
         self.request = request
         self.page_size = request.registry.page_size
-        self.context = context or Root()
 
     @view(validators=(validate_release_bulk),
           content_type='application/json', permission='create')
