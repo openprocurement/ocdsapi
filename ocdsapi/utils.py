@@ -3,7 +3,6 @@ import ocdsmerge
 import json
 import yaml
 from datetime import datetime
-from collections import defaultdict
 from pyramid.security import (
     Allow,
     Everyone,
@@ -33,7 +32,7 @@ def read_datafile(path):
 def find_max_date(items):
     if not items:
         return datetime.now().isoformat()
-    return max(items, key=operator.itemgetter('date')).get('date')
+    return max(items, key=operator.attrgetter('date')).date
 
 
 def prepare_record(ocid, releases, merge_rules):
@@ -45,9 +44,10 @@ def prepare_record(ocid, releases, merge_rules):
         'compiledRelease': ocdsmerge.merge(
             releases, merge_rules=merge_rules
         ),
-        'versionedRelease': ocdsmerge.merge_versioned(
-            releases, merge_rules=merge_rules
-        ),
+        # TODO: fix after optimization
+        # 'versionedRelease': ocdsmerge.merge_versioned(
+        #     releases, merge_rules=merge_rules
+        # ),
         'ocid': ocid,
     }
     return record
@@ -64,15 +64,18 @@ def wrap_in_release_package(request, releases, date):
 
 
 def format_release_package(request, pager, ids_only=False):
+    date = max((item[1] for item in pager.items))
     if ids_only:
         releases = [
-            {"id": item[0], "ocid": item[1]}
+            {"id": item[0], "ocid": item[2]}
             for item in pager.items
         ]
-        date = max((item[2] for item in pager.items)).isoformat()
+
     else:
-        releases = [item.value for item in pager.items]
-        date = find_max_date(releases)
+        releases = [
+            item[2] for item in pager.items
+        ]
+
     next_page = pager.next_page if pager.next_page else pager.page,
     links = {
         'total': pager.page_count,
@@ -88,17 +91,22 @@ def format_release_package(request, pager, ids_only=False):
 
 
 def format_record_package(request, pager, ids_only=False):
-    grouped = defaultdict(list)
-    for release in pager.items:
-        grouped[release.ocid].append(release.value)
+
     records = []
     dates = []
-    for ocid, releases in grouped.items():
-        dates.append(find_max_date(releases))
+    linked_releases = []
+
+    for record in pager.items:
+        dates.append(find_max_date(record.releases))
+        for release in record.releases:
+            linked_releases.append({
+                'url': request.route_url('release.json', _query=(('releaseID', release.release_id),)),
+                'date': release.date
+            })
         records.append(
             prepare_record(
-                ocid,
-                releases,
+                record.ocid,
+                [r.value for r in record.releases],
                 request.registry.merge_rules
             )
         )
@@ -118,13 +126,6 @@ def format_record_package(request, pager, ids_only=False):
             for r in records
         ]
 
-    linked_releases = [
-        {
-            "url": request.route_url('release.json', _query=(('releaseID', item.release_id),)),
-            "date": item.date.isoformat()
-        }
-        for item in pager.items
-    ]
     return wrap_in_record_package(
         request=request,
         linked_releases=linked_releases,

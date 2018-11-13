@@ -1,7 +1,9 @@
+import operator
 from cornice.resource import resource, view
 from itertools import chain
 from paginate_sqlalchemy import SqlalchemyOrmPage
-from ocdsapi.models import Release
+from sqlalchemy import exc
+from ocdsapi.models import Release, Record
 from ocdsapi.validation import validate_release_bulk, validate_release_id
 from ocdsapi.constants import YES
 from ocdsapi.utils import wrap_in_release_package, factory
@@ -39,23 +41,36 @@ class ReleasesResource:
                 }
             else:
                 release_raw = oks.get(release_id)
-                release = Release(
-                    release_id=release_raw['id'],
-                    ocid=release_raw['ocid'],
-                    date=release_raw.get('date'),
-                    value=release_raw
-                )
 
                 try:
-                    session.add(release)
+                    release = Release(
+                        release_id=release_raw['id'],
+                        ocid=release_raw['ocid'],
+                        date=release_raw.get('date'),
+                        value=release_raw
+                    )
                     result[release_id] = {
                         "status": "ok",
                         "description": 'ok'
                     }
-                except Exception as e:
+                    record = (session
+                                .query(Record)
+                                .filter(Record.ocid == release.ocid)
+                                .first())
+                    if not record:
+                        record = Record(
+                            ocid=release.ocid,
+                            releases=[release],
+                            date=release.date
+                        )
+                    else:
+                        record.releases.append(release)
+                        record.date = max(record.releases, key=operator.attrgetter('date'))
+                    session.add(record)
+                except exc.SQLAlchemyError as e:
                     result[release_id] = {
                         'status': 'error',
-                        'description': e.message
+                        'description': repr(e)
                     }
         result.update(releases['error'])
         return result
@@ -67,19 +82,15 @@ class ReleasesResource:
         ids_only = self.request.params.get('idsOnly', '')\
                    and self.request.params.get('idsOnly').lower() in YES
         if ids_only:
-            pager = SqlalchemyOrmPage(
-                self.request.dbsession.query(
-                    Release.release_id, Release.ocid, Release.date
-                ).order_by(Release.date.desc()),
-                page=int(page_number_requested),
-                items_per_page=self.page_size
-            )
+            keys = (Release.release_id, Release.date, Release.ocid)
         else:
-            pager = SqlalchemyOrmPage(
-                self.request.dbsession.query(Release.release_id, Release.value, Release.date).order_by(Release.date.desc()),
-                page=int(page_number_requested),
-                items_per_page=self.page_size
+            keys = (Release.release_id, Release.date, Release.value)
+        pager = SqlalchemyOrmPage(
+            self.request.dbsession.query(*keys).order_by(Release.date.desc()),
+            page=int(page_number_requested),
+            items_per_page=self.page_size
             )
+
         return self.request.release_package(pager, ids_only)
 
 
@@ -99,8 +110,12 @@ class ReleaseResource:
         """ Returns a single OCDS release in format of package. """
         id_ = self.request.validated['release_id']
         release = self.request.dbsession.query(Release).filter(Release.release_id==id_).first()
+        if not release:
+            self.request.response.status = 404
+            self.request.errors.add("querystring", 'releaseID', f'Release {id_} Not Fount')
+            return
         return wrap_in_release_package(
             self.request,
             [release.value],
-            release.date.isoformat()
+            release.date
         )

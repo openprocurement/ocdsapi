@@ -5,7 +5,9 @@ from sqlalchemy import (
     String,
     DateTime,
     Boolean,
+    ForeignKey,
 )
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSON
 from .meta import Base
 
@@ -15,10 +17,23 @@ class Release(Base):
     __tablename__ = 'releases'
 
     release_id = Column(String, primary_key=True)
-    ocid = Column(String)
-    date = Column(DateTime)
-    in_static = Column(Boolean, default=False)
+    ocid = Column(String, ForeignKey('records.ocid'))
+    date = Column(String)
+    last_published = Column(DateTime)
     value = Column(JSON)
 
+
+class Record(Base):
+    __tablename__ = 'records'
+    ocid = Column(String, primary_key=True)
+    date = Column(String)
+
+    releases = relationship(
+        "Release",
+        backref='record',
+        lazy='joined'
+    )
+
 Index('ocids', Release.ocid)
-Index('unreleased', Release.in_static, postgresql_where=Release.in_static==False)
+Index('date', Release.date.desc())
+Index('date-record', Record.ocid, Record.date.desc())
