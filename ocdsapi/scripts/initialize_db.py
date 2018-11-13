@@ -12,7 +12,7 @@ def setup_models(dbsession):
     Add or update models / fixtures in the database.
 
     """
-    model = models.release.Release(name='one', value=1)
+    model = models.release.Release(ocid='one', value=1)
     dbsession.add(model)
 
 

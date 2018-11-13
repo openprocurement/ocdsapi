@@ -44,6 +44,8 @@ def main(global_config, **settings):
         config.set_authentication_policy(BasicAuthAuthenticationPolicy(check_credentials))
         config.registry.validator = fastjsonschema.compile(config.registry.schema)
         apps = settings.get('apps', '').split(',')
+        config.include('pyramid_celery')
+        config.configure_celery(global_config['__file__'])
         for app in apps:
             path, _, plugin = app.partition(':')
             if not plugin:

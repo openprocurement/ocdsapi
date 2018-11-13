@@ -1,7 +1,7 @@
 import operator
 from cornice.resource import resource, view
 from paginate_sqlalchemy import SqlalchemyOrmPage
-from ocdsapi.models import Release
+from ocdsapi.models import Release, Record
 from ocdsapi.validation import validate_ocid
 from ocdsapi.constants import YES
 from ocdsapi.utils import prepare_record,\
@@ -20,8 +20,8 @@ class RecordsResource:
         self.request = request
         self.query = (request
                       .dbsession
-                      .query(Release)
-                      .order_by(Release.date.desc(), Release.ocid))
+                      .query(Record)
+                      .order_by(Record.date.desc()))
         self.page_size = request.registry.page_size
 
     @view(renderer='simplejson', permission='view')
@@ -53,11 +53,13 @@ class RecordResource:
     def get(self):
         """ Returns single OCDS record in package. """
         ocid = self.request.validated['ocid']
-        releases = [
-            item.value
-            for item in
-            self.request.dbsession.query(Release).filter(Release.ocid==ocid).all()
-        ]
+        record = self.request.dbsession.query(Record).filter(Record.ocid==ocid).first()
+        if not record:
+            self.request.response.status = 404
+            self.request.errors.add("querystring", 'ocid', f'Record {ocid} not found')
+            return
+        date = find_max_date(record.releases)
+        releases = [r.value for r in record.releases]
         record = prepare_record(ocid, releases, self.request.registry.merge_rules)
         linked_releases = [{
             "url": self.request.route_url('release.json', _query=(('releaseID', r['id']),)),
@@ -69,5 +71,5 @@ class RecordResource:
             request=self.request,
             linked_releases=sorted(linked_releases, key=operator.itemgetter('date')),
             records=[record],
-            date=find_max_date(releases)
+            date=date
         )
