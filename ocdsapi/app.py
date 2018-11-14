@@ -46,6 +46,7 @@ def main(global_config, **settings):
                     logger.info(f"Updated mapping for elasticsearch {mapping_}")
         config.registry.settings['api_specs'] = swagger_data
         config.add_route('cornice_swagger.open_api_path', '/swagger.json')
+        config.add_route('health', '/health')
         config.cornice_enable_openapi_explorer(api_explorer_path='/swagger.ui')
         config.include('.models')
         config.add_renderer('simplejson', JSON(serializer=simplejson.dumps))
