@@ -69,6 +69,8 @@ def main(global_config, **settings):
         config.registry.validator = fastjsonschema.compile(config.registry.schema)
         apps = settings.get('apps', '').split(',')
         for app in apps:
+            if not app:
+                continue
             path, _, plugin = app.partition(':')
             if not plugin:
                 plugin = 'includeme'

@@ -7,6 +7,7 @@ from pyramid.security import (
     Allow,
     Everyone,
 )
+from ocdsapi.models import get_session_factory, get_engine
 
 
 BASE = {
@@ -160,3 +161,8 @@ class Root:
 
 def factory(request):
     return Root()
+
+
+def get_db_session(settings):
+    factory = get_session_factory(get_engine(settings))
+    return factory()

@@ -7,9 +7,9 @@ from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch.helpers import bulk
 from paginate_sqlalchemy import SqlalchemyOrmPage
 from ocdsmerge.merge import process_schema
-from ocdsapi.models import get_engine,\
-    get_session_factory, Record
-from ocdsapi.utils import prepare_record
+from ocdsapi.models import Record
+from ocdsapi.utils import prepare_record, get_db_session
+
 
 
 parser = argparse.ArgumentParser("OCDS API index builder")
@@ -18,9 +18,6 @@ parser.add_argument('config',
                     default='development.ini'
                     )
 
-def get_db_session(settings):
-    factory = get_session_factory(get_engine(settings))
-    return factory()
 
 
 def main():
