@@ -23,6 +23,7 @@ def main(global_config, **settings):
         config.route_prefix = 'api'
         config.include('cornice')
         config.include('cornice_swagger')
+        config.registry.global_config = global_config
         swagger_data = SWAGGER
         if settings.get('api.swagger'):
             swagger_data.update(read_datafile(settings.get('api.swagger')))
@@ -71,7 +72,13 @@ def main(global_config, **settings):
             path, _, plugin = app.partition(':')
             if not plugin:
                 plugin = 'includeme'
-            module = resolve.resolve(path)
-            getattr(module, plugin)(config)
+            try:
+                module = resolve.resolve(path)
+                if hasattr(module, plugin):
+                    getattr(module, plugin)(config)
+                else:
+                    logger.error(f"App {path} unavailable, check your configuration")
+            except KeyError as e:
+                logger.error(f"Unable to load {path} plugin. Error: {repr(e)}")
         config.scan()
     return config.make_wsgi_app()
