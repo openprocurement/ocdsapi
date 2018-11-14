@@ -1,12 +1,17 @@
 import operator
+from logging import getLogger
 from cornice.resource import resource, view
 from itertools import chain
 from paginate_sqlalchemy import SqlalchemyOrmPage
 from sqlalchemy import exc
+from elasticsearch.helpers import bulk, ElasticsearchException
 from ocdsapi.models import Release, Record
 from ocdsapi.validation import validate_release_bulk, validate_release_id
 from ocdsapi.constants import YES
-from ocdsapi.utils import wrap_in_release_package, factory
+from ocdsapi.utils import wrap_in_release_package, factory, prepare_record
+
+
+logger = getLogger('ocdsapi')
 
 
 @resource(
@@ -33,6 +38,7 @@ class ReleasesResource:
         existing = set(chain(*query.all()))
         result = {}
         oks = releases['ok']
+        index_bulk = []
         for release_id in oks.keys():
             if release_id in existing:
                 result[release_id] = {
@@ -67,11 +73,34 @@ class ReleasesResource:
                         record.releases.append(release)
                         record.date = max(record.releases, key=operator.attrgetter('date'))
                     session.add(record)
+                    logger.info(f"Added release {release.release_id} to record {release.ocid}")
+
+                    if self.request.registry.es:
+                        es_doc = prepare_record(
+                        record.ocid,
+                        [r.value for r in record.releases],
+                        self.request.registry.merge_rules
+                        )
+                        if es_doc:
+                            index_bulk.append({
+                            '_index': self.request.registry.es_index,
+                            '_type': 'Tender',
+                            '_id': es_doc['ocid'],
+                            '_source': {'ocds': es_doc['compiledRelease']}
+                            })
+
                 except exc.SQLAlchemyError as e:
                     result[release_id] = {
                         'status': 'error',
                         'description': repr(e)
                     }
+        try:
+            if index_bulk:
+                bulk(self.request.registry.es, index_bulk)
+                logger.info(f"Indexed to elasticsearch {len(index_bulk)}")
+        except ElasticsearchException as e:
+            logger.error("Failed to index records to elasticsearch")
+
         result.update(releases['error'])
         return result
 
