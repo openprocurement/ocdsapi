@@ -111,7 +111,7 @@ def format_record_package(request, pager, ids_only=False):
             )
         )
     date = max(dates) if dates else datetime.now().isoformat()
-    next_page = pager.next_page if pager.next_page else pager.page,
+    next_page = pager.next_page if pager.next_page else 1
     links = {
         'total': pager.page_count,
         'next': request.route_url('records.json', _query=(('page', next_page),))

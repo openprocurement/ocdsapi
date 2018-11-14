@@ -1,14 +1,19 @@
 import fastjsonschema
 import simplejson
+from logging import getLogger
 from pyramid.renderers import JSON
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid.config import Configurator, ConfigurationError
 from zope.dottedname import resolve
+from elasticsearch import Elasticsearch
 from ocdsmerge.merge import process_schema
 from ocdsapi.constants import SWAGGER, RECORD
 from ocdsapi.utils import format_release_package,\
     read_datafile, format_record_package, check_credentials
+
+
+logger = getLogger('ocdsapi')
 
 
 def main(global_config, **settings):
@@ -21,7 +26,24 @@ def main(global_config, **settings):
         swagger_data = SWAGGER
         if settings.get('api.swagger'):
             swagger_data.update(read_datafile(settings.get('api.swagger')))
-
+        elasticsearch = settings.get("elasticsearch.url")
+        if elasticsearch:
+            es = Elasticsearch([elasticsearch])
+            index = settings.get("elasticsearch.index", 'releases')
+            config.registry.es = es
+            config.registry.es_index = index
+            es.indices.create(index=index, ignore=400)
+            logger.info(f"Created index {index}")
+            mapping_ = settings.get("elasticsearch.mapping")
+            if mapping_:
+                with open(mapping_) as _in:
+                    mapping = simplejson.load(_in)
+                    es.indices.put_mapping(
+                        doc_type='Tender',
+                        index=index,
+                        body=mapping
+                    )
+                    logger.info(f"Updated mapping for elasticsearch {mapping_}")
         config.registry.settings['api_specs'] = swagger_data
         config.add_route('cornice_swagger.open_api_path', '/swagger.json')
         config.cornice_enable_openapi_explorer(api_explorer_path='/swagger.ui')
@@ -44,8 +66,6 @@ def main(global_config, **settings):
         config.set_authentication_policy(BasicAuthAuthenticationPolicy(check_credentials))
         config.registry.validator = fastjsonschema.compile(config.registry.schema)
         apps = settings.get('apps', '').split(',')
-        config.include('pyramid_celery')
-        config.configure_celery(global_config['__file__'])
         for app in apps:
             path, _, plugin = app.partition(':')
             if not plugin:

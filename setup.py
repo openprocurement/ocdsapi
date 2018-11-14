@@ -29,7 +29,8 @@ requires = [
     'simplejson',
     'pyyaml',
     'fastjsonschema',
-    'deep_merge'
+    'deep_merge',
+    'elasticsearch>=6.0.0,<7.0.0'
 ]
 
 tests_require = [
@@ -66,6 +67,7 @@ setup(
         ],
         'console_scripts': [
             'initialize_ocdsapi_db=ocdsapi.scripts.initialize_db:main',
+            'rebuild_index=ocdsapi.scripts.index:main'
         ],
     },
 )
