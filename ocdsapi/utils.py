@@ -131,18 +131,20 @@ def format_record_package(request, pager, ids_only=False):
         request=request,
         linked_releases=linked_releases,
         records=records,
-        date=date
+        date=date,
+        links=links
     )
 
 
-def wrap_in_record_package(*, request, linked_releases, date, records):
+def wrap_in_record_package(*, request, linked_releases, date, records, links={}):
     return {
         **BASE,
         **request.registry.publisher,
         'records': records,
         'publishedDate': date,
         'uri': request.current_route_url(),
-        'releases': linked_releases
+        'releases': linked_releases,
+        'links': links
     }
 
 
