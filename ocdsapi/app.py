@@ -28,6 +28,7 @@ def main(global_config, **settings):
         if settings.get('api.swagger'):
             swagger_data.update(read_datafile(settings.get('api.swagger')))
         elasticsearch = settings.get("elasticsearch.url")
+        config.registry.es = None
         if elasticsearch:
             es = Elasticsearch([elasticsearch])
             index = settings.get("elasticsearch.index", 'releases')
