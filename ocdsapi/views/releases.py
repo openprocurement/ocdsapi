@@ -71,7 +71,7 @@ class ReleasesResource:
                         )
                     else:
                         record.releases.append(release)
-                        record.date = max(record.releases, key=operator.attrgetter('date'))
+                        record.date = max(record.releases, key=operator.attrgetter('date')).date
                     session.add(record)
                     logger.info(f"Added release {release.release_id} to record {release.ocid}")
 
