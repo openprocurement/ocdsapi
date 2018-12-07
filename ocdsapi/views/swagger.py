@@ -16,6 +16,7 @@ def swagger_json(request):
         services,
         pyramid_registry=request.registry
     )
+    swagger.base_path = '/api'
     swagger.summary_docstrings = True
     info = request.registry.settings['api_specs']
     base = swagger.generate(**info, info=info)
