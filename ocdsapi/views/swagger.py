@@ -25,4 +25,6 @@ def swagger_json(request):
             merge(base['paths'][path], doc[path.lstrip('/')])
 
     base['models'] = request.registry.models
+    # This is private endpoint
+    del(base['paths']['/releases.json']['post'])
     return base
