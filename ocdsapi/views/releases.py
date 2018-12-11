@@ -69,9 +69,14 @@ class ReleasesResource:
                             releases=[release],
                             date=release.date
                         )
+                        logger.info(f"Created record {release.ocid} with release {release.release_id}")
                     else:
                         record.releases.append(release)
-                        record.date = max(record.releases, key=operator.attrgetter('date')).date
+                        max_date_release = max(
+                            record.releases, key=operator.attrgetter('date')
+                        )
+                        record.date = max_date_release.date
+                        logger.info(f"Update record {release.ocid} with release {release.release_id}")
                     session.add(record)
                     logger.info(f"Added release {release.release_id} to record {release.ocid}")
 
@@ -141,7 +146,9 @@ class ReleaseResource:
         release = self.request.dbsession.query(Release).filter(Release.release_id==id_).first()
         if not release:
             self.request.response.status = 404
-            self.request.errors.add("querystring", 'releaseID', f'Release {id_} Not Fount')
+            self.request.errors.add(
+                "querystring", 'releaseID', f"Release '{id_}' Not Found"
+                )
             return
         return wrap_in_release_package(
             self.request,

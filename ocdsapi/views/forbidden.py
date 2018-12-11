@@ -3,6 +3,7 @@ from pyramid.view import forbidden_view_config, notfound_view_config
 
 @forbidden_view_config(renderer='simplejson')
 def forbidden(request):
+    request.response.status = 403
     return {'status': 'error', "description": "Forbidden"}
 
 

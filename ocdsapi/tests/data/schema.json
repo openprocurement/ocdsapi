@@ -1,0 +1,19 @@
+{
+  "$id": "https://example.com/person.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Release",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "identifier"
+    },
+    "date": {
+      "type": "string",
+      "description": "date published"
+    },
+    "ocid": {
+      "type": "string"
+    }
+  }
+}
