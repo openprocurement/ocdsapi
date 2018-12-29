@@ -12,9 +12,9 @@ from ocdsapi.models import get_session_factory, get_engine
 
 BASE = {
     'publisher': {
-    'name': None,
-    'scheme': None,
-    'uri': None
+        'name': None,
+        'scheme': None,
+        'uri': None
     },
     'license': None,
     'publicationPolicy': None,
@@ -36,12 +36,16 @@ def find_max_date(items):
     return max(items, key=operator.attrgetter('date')).date
 
 
-def prepare_record(ocid, releases, merge_rules):
+def prepare_record(request, ocid, releases, merge_rules):
     if not releases:
         return {}
-
     record = {
-        'releases': sorted(releases, key=operator.itemgetter('date')),
+        'releases': [
+            linked_release(request, release)
+            for release in sorted(
+                releases, key=operator.itemgetter('date')
+                )
+        ],
         'compiledRelease': ocdsmerge.merge(
             releases, merge_rules=merge_rules
         ),
@@ -81,8 +85,10 @@ def format_release_package(request, pager, ids_only=False):
 
     next_page = pager.next_page if pager.next_page else pager.page,
     links = {
-        #'total': pager.page_count,
-        'next': request.route_url('releases.json', _query=(('page', next_page),))
+        # 'total': pager.page_count,
+        'next': request.route_url(
+            'releases.json', _query=(('page', next_page),)
+            )
     }
     if pager.previous_page:
         links['prev'] = request.route_url(
@@ -93,21 +99,25 @@ def format_release_package(request, pager, ids_only=False):
     return package
 
 
+def linked_release(request, release):
+    return {
+        'url': request.route_url(
+            'release.json', _query=(('releaseID', release['id']),)
+            ),
+        'date': release['date']
+    }
+
+
 def format_record_package(request, pager, ids_only=False):
 
     records = []
     dates = []
-    linked_releases = []
 
     for record in pager.items:
         dates.append(find_max_date(record.releases))
-        for release in record.releases:
-            linked_releases.append({
-                'url': request.route_url('release.json', _query=(('releaseID', release.release_id),)),
-                'date': release.date
-            })
         records.append(
             prepare_record(
+                request,
                 record.ocid,
                 [r.value for r in record.releases],
                 request.registry.merge_rules
@@ -116,8 +126,10 @@ def format_record_package(request, pager, ids_only=False):
     date = max(dates) if dates else datetime.now().isoformat()
     next_page = pager.next_page if pager.next_page else 1
     links = {
-        #'total': pager.page_count,
-        'next': request.route_url('records.json', _query=(('page', next_page),))
+        # 'total': pager.page_count,
+        'next': request.route_url(
+            'records.json', _query=(('page', next_page),)
+            )
     }
     if pager.previous_page:
         links['prev'] = request.route_url(
@@ -131,21 +143,20 @@ def format_record_package(request, pager, ids_only=False):
 
     return wrap_in_record_package(
         request=request,
-        linked_releases=linked_releases,
         records=records,
         date=date,
         links=links
     )
 
 
-def wrap_in_record_package(*, request, linked_releases, date, records, links={}):
+def wrap_in_record_package(*, request,
+                           date, records, links={}):
     return {
         **BASE,
         **request.registry.publisher,
         'records': records,
         'publishedDate': date,
         'uri': request.current_route_url(),
-        'releases': linked_releases,
         'links': links
     }
 

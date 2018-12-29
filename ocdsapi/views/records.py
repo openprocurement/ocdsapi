@@ -49,27 +49,35 @@ class RecordResource:
     def __init__(self, request, context=None):
         self.request = request
 
-    @view(validators=(validate_ocid,), renderer='simplejson', permission='view')
+    @view(
+        validators=(validate_ocid,),
+        renderer='simplejson', permission='view')
     def get(self):
         """ Returns single OCDS record in package. """
         ocid = self.request.validated['ocid']
-        record = self.request.dbsession.query(Record).filter(Record.ocid==ocid).first()
+        record = (
+                self.request
+                .dbsession
+                .query(Record)
+                .filter(Record.ocid == ocid)
+                .first()
+            )
         if not record:
             self.request.response.status = 404
-            self.request.errors.add("querystring", 'ocid', f'Record {ocid} not found')
+            self.request.errors.add(
+                "querystring", 'ocid',
+                f'Record {ocid} not found'
+                )
             return
         date = find_max_date(record.releases)
-        releases = [r.value for r in record.releases]
-        record = prepare_record(ocid, releases, self.request.registry.merge_rules)
-        linked_releases = [{
-            "url": self.request.route_url('release.json', _query=(('releaseID', r['id']),)),
-            "date": r['date']
-            }
-            for r in releases
-        ]
+        record = prepare_record(
+            self.request, ocid,
+            [r.value for r in record.releases],
+            self.request.registry.merge_rules
+            )
+
         return wrap_in_record_package(
             request=self.request,
-            linked_releases=sorted(linked_releases, key=operator.itemgetter('date')),
             records=[record],
             date=date
         )
