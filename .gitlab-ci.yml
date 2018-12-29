@@ -4,7 +4,7 @@ variables:
   CI_DOCKER_REGISTRY: docker.io
   CI_DOCKER_IMAGE: spageorgia/ocdsapi
   CI_DOCKER_TAG: ci
-  RUN_TEST: "(pip install .[test] && pytest tests/)"
+  RUN_TEST: "(pip install .[test] && pytest)"
 
 
 before_script:
