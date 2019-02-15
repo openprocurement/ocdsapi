@@ -23,5 +23,5 @@ test:
     # - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
   tags:
     - spage
-  only:
-    - master
+#   only:
+#     - master
