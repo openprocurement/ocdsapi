@@ -27,6 +27,7 @@ class Record(Base):
     __tablename__ = 'records'
     ocid = Column(String, primary_key=True)
     date = Column(String)
+    value = Column(JSON)
 
     releases = relationship(
         "Release",

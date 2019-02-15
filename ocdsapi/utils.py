@@ -7,8 +7,7 @@ from pyramid.security import (
     Allow,
     Everyone,
 )
-from ocdsapi.models import get_session_factory, get_engine
-
+from ocdsapi.models import get_session_factory, get_engine, Record
 
 BASE = {
     'publisher': {
@@ -39,6 +38,13 @@ def find_max_date(items):
 def prepare_record(request, ocid, releases, merge_rules):
     if not releases:
         return {}
+    try:
+        compiledRelease = request.dbsession.query(Record).filter(
+            Record.ocid == ocid).first().value.get('compiledRelease')
+    except Exception:
+        compiledRelease = ocdsmerge.merge(
+            releases, merge_rules=merge_rules
+        )
     record = {
         'releases': [
             linked_release(request, release)
@@ -46,9 +52,7 @@ def prepare_record(request, ocid, releases, merge_rules):
                 releases, key=operator.itemgetter('date')
                 )
         ],
-        'compiledRelease': ocdsmerge.merge(
-            releases, merge_rules=merge_rules
-        ),
+        'compiledRelease': compiledRelease,
         # TODO: fix after optimization
         # 'versionedRelease': ocdsmerge.merge_versioned(
         #     releases, merge_rules=merge_rules
@@ -181,3 +185,4 @@ def factory(request):
 def get_db_session(settings):
     factory = get_session_factory(get_engine(settings))
     return factory()
+
