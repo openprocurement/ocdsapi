@@ -9,6 +9,7 @@ variables:
 
 before_script:
   - docker login -u "$DOCKER_HUB_USERNAME" -p "$DOCKER_HUB_PASSWORD" "$CI_DOCKER_REGISTRY"
+  - docker pull $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG
   - docker info
   - docker run -d --name $CI_COMMIT_REF_SLUG_$CI_JOB_ID -p 5432:5432 -e POSTGRES_DB=testing -e POSTGRES_PASSWORD=admin postgres:11.2
 after_script:
@@ -19,7 +20,7 @@ after_script:
 test:
   script:
     - docker run --network host --rm -u root -v `pwd`:/package:Z -w /package $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG bash -c "${RUN_TEST}"
-    - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
+    # - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
   tags:
     - spage
   only:
