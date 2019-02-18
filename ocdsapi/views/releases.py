@@ -87,36 +87,11 @@ class ReleasesResource:
                     session.add(record)
                     logger.info(f"Added release {release.release_id} to record {release.ocid}")
 
-                    if self.request.registry.es:
-                        es_doc = prepare_record(
-                            record,
-                            [{
-                                "id": r.release_id,
-                                "date": r.date,
-                                "ocid": r.ocid
-                            } for r in record.releases],
-                            self.request.registry.merge_rules
-                            )
-                        if es_doc:
-                            index_bulk.append({
-                            '_index': self.request.registry.es_index,
-                            '_type': 'Tender',
-                            '_id': es_doc['ocid'],
-                            '_source': {'ocds': es_doc['compiledRelease']}
-                            })
-
                 except exc.SQLAlchemyError as e:
                     result[release_id] = {
                         'status': 'error',
                         'description': repr(e)
                     }
-        try:
-            if index_bulk:
-                bulk(self.request.registry.es, index_bulk)
-                logger.info(f"Indexed to elasticsearch {len(index_bulk)}")
-        except ElasticsearchException as e:
-            logger.error("Failed to index records to elasticsearch")
-
         result.update(releases['error'])
         return result
 
