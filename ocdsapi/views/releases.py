@@ -82,9 +82,10 @@ class ReleasesResource:
 
                     if self.request.registry.es:
                         es_doc = prepare_record(
-                        record.ocid,
-                        [r.value for r in record.releases],
-                        self.request.registry.merge_rules
+                            self.request,
+                            record.ocid,
+                            [r.value for r in record.releases],
+                            self.request.registry.merge_rules
                         )
                         if es_doc:
                             index_bulk.append({
