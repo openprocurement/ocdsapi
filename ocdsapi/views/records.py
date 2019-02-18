@@ -1,7 +1,9 @@
 import operator
 from cornice.resource import resource, view
 from paginate_sqlalchemy import SqlalchemyOrmPage
-from ocdsapi.models import Release, Record
+from sqlalchemy.orm import joinedload
+
+from ocdsapi.models import Record
 from ocdsapi.validation import validate_ocid
 from ocdsapi.constants import YES
 from ocdsapi.utils import prepare_record,\
@@ -21,6 +23,7 @@ class RecordsResource:
         self.query = (request
                       .dbsession
                       .query(Record)
+                      .options(joinedload("releases").load_only("date"))
                       .order_by(Record.date.desc()))
         self.page_size = request.registry.page_size
 
@@ -60,6 +63,7 @@ class RecordResource:
                 .dbsession
                 .query(Record)
                 .filter(Record.ocid == ocid)
+                .options(joinedload("releases").load_only("date"))
                 .first()
             )
         if not record:
@@ -72,7 +76,8 @@ class RecordResource:
         date = find_max_date(record.releases)
         record = prepare_record(
             self.request, ocid,
-            [r.value for r in record.releases],
+            [{'id': r.release_id,
+              'date': r.date} for r in record.releases],
             self.request.registry.merge_rules
             )
 

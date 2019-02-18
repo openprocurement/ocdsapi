@@ -38,9 +38,10 @@ def find_max_date(items):
 def prepare_record(request, ocid, releases, merge_rules):
     if not releases:
         return {}
+    merge_rules = ocdsmerge.get_merge_rules('release-schema.json')
     try:
         compiledRelease = request.dbsession.query(Record).filter(
-            Record.ocid == ocid).first().value.get('compiledRelease')
+            Record.ocid == ocid).first().compiled_release
     except Exception:
         compiledRelease = ocdsmerge.merge(
             releases, merge_rules=merge_rules
@@ -123,7 +124,8 @@ def format_record_package(request, pager, ids_only=False):
             prepare_record(
                 request,
                 record.ocid,
-                [r.value for r in record.releases],
+                [{'id': r.release_id,
+                  'date': r.date} for r in record.releases],
                 request.registry.merge_rules
             )
         )

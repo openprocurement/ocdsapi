@@ -70,8 +70,8 @@ class ReleasesResource:
                             ocid=release.ocid,
                             releases=[release],
                             date=release.date,
-                            value={'compiledRelease': ocdsmerge.merge(
-                                [release.value])}
+                            compiled_release=ocdsmerge.merge(
+                                [release.value])
                         )
                         logger.info(f"Created record {release.ocid} with release {release.release_id}")
                     else:
@@ -80,9 +80,9 @@ class ReleasesResource:
                             record.releases, key=operator.attrgetter('date')
                         )
                         record.date = max_date_release.date
-                        record.value = {'compiledRelease': ocdsmerge.merge(
+                        record.compiled_release = ocdsmerge.merge(
                             [r.value for r in record.releases]
-                        )}
+                        )
                         logger.info(f"Update record {release.ocid} with release {release.release_id}")
                     session.add(record)
                     logger.info(f"Added release {release.release_id} to record {release.ocid}")
