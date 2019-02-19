@@ -32,8 +32,7 @@ def read_datafile(path):
 def find_max_date(items):
     if not items:
         return datetime.now().isoformat()
-    dates = [i.value.get('date') for i in items]
-    return max(dates)
+    return max(items, key=operator.attrgetter('date')).date
 
 
 def prepare_record(request, record, releases, merge_rules):
@@ -123,7 +122,11 @@ def format_record_package(request, pager, ids_only=False):
             prepare_record(
                 request,
                 record,
-                [r.value for r in record.releases],
+                [{
+                    "id": r.release_id,
+                    "date": r.date,
+                    "ocid": r.ocid
+                } for r in record.releases],
                 request.registry.merge_rules
             )
         )

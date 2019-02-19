@@ -90,7 +90,11 @@ class ReleasesResource:
                     if self.request.registry.es:
                         es_doc = prepare_record(
                             record,
-                            [r.value for r in record.releases],
+                            [{
+                                "id": r.release_id,
+                                "date": r.date,
+                                "ocid": r.ocid
+                            } for r in record.releases],
                             self.request.registry.merge_rules
                             )
                         if es_doc:

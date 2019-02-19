@@ -54,7 +54,11 @@ def main():
         for record in page.items:
             record = prepare_record(
                     record,
-                    [r.value for r in record.releases],
+                    [{
+                        "id": r.release_id,
+                        "date": r.date,
+                        "ocid": r.ocid
+                    } for r in record.releases],
                     rules
             )
             if record:
