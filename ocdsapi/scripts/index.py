@@ -53,7 +53,7 @@ def main():
         records = []
         for record in page.items:
             record = prepare_record(
-                    record.ocid,
+                    record,
                     [r.value for r in record.releases],
                     rules
             )

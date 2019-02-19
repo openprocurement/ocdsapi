@@ -32,20 +32,19 @@ def read_datafile(path):
 def find_max_date(items):
     if not items:
         return datetime.now().isoformat()
-    return max(items, key=operator.attrgetter('date')).date
+    dates = [i.value.get('date') for i in items]
+    return max(dates)
 
 
-def prepare_record(request, ocid, releases, merge_rules):
+def prepare_record(request, record, releases, merge_rules):
     if not releases:
         return {}
-    merge_rules = ocdsmerge.get_merge_rules('release-schema.json')
     try:
-        compiledRelease = request.dbsession.query(Record).filter(
-            Record.ocid == ocid).first().compiled_release
+        compiledRelease = record.compiled_release
     except Exception:
         compiledRelease = ocdsmerge.merge(
-            releases, merge_rules=merge_rules
-        )
+                releases, merge_rules=request.registry.merge_rules
+            )
     record = {
         'releases': [
             linked_release(request, release)
@@ -58,7 +57,7 @@ def prepare_record(request, ocid, releases, merge_rules):
         # 'versionedRelease': ocdsmerge.merge_versioned(
         #     releases, merge_rules=merge_rules
         # ),
-        'ocid': ocid,
+        'ocid': record.ocid,
     }
     return record
 
@@ -123,9 +122,8 @@ def format_record_package(request, pager, ids_only=False):
         records.append(
             prepare_record(
                 request,
-                record.ocid,
-                [{'id': r.release_id,
-                  'date': r.date} for r in record.releases],
+                record,
+                [r.value for r in record.releases],
                 request.registry.merge_rules
             )
         )

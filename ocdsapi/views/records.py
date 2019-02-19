@@ -23,7 +23,7 @@ class RecordsResource:
         self.query = (request
                       .dbsession
                       .query(Record)
-                      .options(joinedload("releases").load_only("date"))
+                      .options(joinedload("releases").load_only("value"))
                       .order_by(Record.date.desc()))
         self.page_size = request.registry.page_size
 
@@ -63,7 +63,7 @@ class RecordResource:
                 .dbsession
                 .query(Record)
                 .filter(Record.ocid == ocid)
-                .options(joinedload("releases").load_only("date"))
+                .options(joinedload("releases").load_only("value"))
                 .first()
             )
         if not record:
@@ -75,9 +75,9 @@ class RecordResource:
             return
         date = find_max_date(record.releases)
         record = prepare_record(
-            self.request, ocid,
-            [{'id': r.release_id,
-              'date': r.date} for r in record.releases],
+            self.request,
+            record,
+            [r.value for r in record.releases],
             self.request.registry.merge_rules
             )
 
