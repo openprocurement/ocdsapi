@@ -68,7 +68,9 @@ def main(global_config, **settings):
         if tokens:
             config.registry.tokens = frozenset(tokens)
         config.set_authentication_policy(BasicAuthAuthenticationPolicy(check_credentials))
-        config.registry.validator = fastjsonschema.compile(config.registry.schema)
+        config.registry.validator = None
+        if settings.get('api.force_validation', False):
+            config.registry.validator = fastjsonschema.compile(config.registry.schema)
         apps = settings.get('apps', '').split(',')
         for app in apps:
             if not app:

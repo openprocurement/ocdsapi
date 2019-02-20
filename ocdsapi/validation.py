@@ -26,7 +26,8 @@ def validate_release_bulk(request, **kw):
             release_id = hashlib.md5(str(release).encode('utf-8')).hexdigest()
             release['id'] = release_id
             try:
-                request.validated['releases']['ok'][release_id] = validator(release)
+                release = release if not validator else validator(release)
+                request.validated['releases']['ok'][release_id] = release
             except JsonSchemaException as e:
                 request.validated['releases']['error'][release_id] = e.message
     except JSONDecodeError as e:
