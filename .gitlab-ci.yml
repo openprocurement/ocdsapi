@@ -4,7 +4,7 @@ variables:
   CI_DOCKER_REGISTRY: "$CI_REGISTRY"
   CI_DOCKER_IMAGE: ocds/ocdsapi
   CI_DOCKER_TAG: latest
-  RUN_TEST: "(pip install .[test] && pytest)" 
+  RUN_TEST: "(pip install .[testing] && pytest)" 
 
 before_script:
   - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_DOCKER_REGISTRY"
