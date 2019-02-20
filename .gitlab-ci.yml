@@ -3,7 +3,7 @@ variables:
   COMPONENT_PROJECT_PIPELINE_TRIGGER: "$OCDSAPI_COMPONENT_PROJECT_PIPELINE_TRIGGER"
   CI_DOCKER_REGISTRY: "$CI_REGISTRY"
   CI_DOCKER_IMAGE: ocds/ocdsapi
-  CI_DOCKER_TAG: ci
+  CI_DOCKER_TAG: latest
   RUN_TEST: "(pip install .[test] && pytest)" 
 
 before_script:
