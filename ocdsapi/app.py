@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch
 from ocdsmerge.merge import process_schema
 from ocdsapi.constants import SWAGGER, RECORD
 from ocdsapi.utils import format_release_package,\
-    read_datafile, format_record_package, check_credentials
+    read_datafile, format_record_package, check_credentials, BASE
 
 
 logger = getLogger('ocdsapi')
@@ -58,6 +58,7 @@ def main(global_config, **settings):
         config.registry.publisher = read_datafile(settings.get('api.publisher'))
         config.registry.schema = read_datafile(settings.get('api.schema'))
         config.registry.merge_rules = process_schema(settings.get('api.schema'))
+        BASE['extensions'] = settings.get('api.extensions', '').split()
         config.registry.models = {
             'Release': config.registry.schema,
             'Record': RECORD
