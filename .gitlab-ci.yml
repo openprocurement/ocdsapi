@@ -1,14 +1,14 @@
 variables:
   COMPONENT_PROJECT_ID: 466
   COMPONENT_PROJECT_PIPELINE_TRIGGER: "$OCDSAPI_COMPONENT_PROJECT_PIPELINE_TRIGGER"
-  CI_DOCKER_REGISTRY: docker.io
-  CI_DOCKER_IMAGE: spageorgia/ocdsapi
+  CI_DOCKER_REGISTRY: "$CI_REGISTRY"
+  CI_DOCKER_IMAGE: ocds/api
   CI_DOCKER_TAG: ci
-  RUN_TEST: "(pip install .[test] && pytest)"
-
+  RUN_TEST: "(pip install .[testing] && pytest)" 
 
 before_script:
-  - docker login -u "$DOCKER_HUB_USERNAME" -p "$DOCKER_HUB_PASSWORD" "$CI_DOCKER_REGISTRY"
+  - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_DOCKER_REGISTRY"
+  - echo $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG
   - docker pull $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG
   - docker info
   - docker run -d --name $CI_COMMIT_REF_SLUG_$CI_JOB_ID -p 5432:5432 -e POSTGRES_DB=testing -e POSTGRES_PASSWORD=admin postgres:11.2
@@ -22,6 +22,6 @@ test:
     - docker run --network host --rm -u root -v `pwd`:/package:Z -w /package $CI_DOCKER_REGISTRY/$CI_DOCKER_IMAGE:$CI_DOCKER_TAG bash -c "${RUN_TEST}"
     # - "curl -XPOST --form token=$COMPONENT_PROJECT_PIPELINE_TRIGGER --form ref=master https://gitlab.quintagroup.com/api/v4/projects/$COMPONENT_PROJECT_ID/trigger/pipeline"
   tags:
-    - spage
+    - cicd
 #   only:
 #     - master
