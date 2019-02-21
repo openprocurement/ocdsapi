@@ -362,6 +362,7 @@ class TestRecordsResource(BaseTest):
                 value={
                     "id": str(index)*10,
                     'title': str(index),
+                    'ocid': str(index),
                     'date': datetime.now().isoformat()
                     }
             )

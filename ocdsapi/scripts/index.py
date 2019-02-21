@@ -6,7 +6,7 @@ from json import load
 from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch.helpers import bulk
 from paginate_sqlalchemy import SqlalchemyOrmPage
-from ocdsmerge.merge import process_schema
+from ocdsmerge.merge import get_merge_rules
 from ocdsapi.models import Record
 from ocdsapi.utils import prepare_record, get_db_session
 
@@ -40,7 +40,7 @@ def main():
                 body=mapping
             )
     session = get_db_session(settings)
-    rules = process_schema(settings.get('api.schema'))
+    rules = get_merge_rules(settings.get('api.schema'))
     page = 1
     while True:
         page = SqlalchemyOrmPage(
