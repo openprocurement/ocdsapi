@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 import fastjsonschema
 import simplejson
 from logging import getLogger
@@ -5,8 +7,6 @@ from pyramid.renderers import JSON
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid.config import Configurator, ConfigurationError
-from zope.dottedname import resolve
-from elasticsearch import Elasticsearch
 from ocdsmerge.merge import get_merge_rules
 from ocdsapi.constants import SWAGGER, RECORD
 from ocdsapi.utils import format_release_package,\
@@ -23,29 +23,9 @@ def main(global_config, **settings):
         config.route_prefix = 'api'
         config.include('cornice')
         config.include('cornice_swagger')
-        config.registry.global_config = global_config
         swagger_data = SWAGGER
         if settings.get('api.swagger'):
             swagger_data.update(read_datafile(settings.get('api.swagger')))
-        elasticsearch = settings.get("elasticsearch.url")
-        config.registry.es = None
-        if elasticsearch:
-            es = Elasticsearch([elasticsearch])
-            index = settings.get("elasticsearch.index", 'releases')
-            config.registry.es = es
-            config.registry.es_index = index
-            es.indices.create(index=index, ignore=400)
-            logger.info(f"Created index {index}")
-            mapping_ = settings.get("elasticsearch.mapping")
-            if mapping_:
-                with open(mapping_) as _in:
-                    mapping = simplejson.load(_in)
-                    es.indices.put_mapping(
-                        doc_type='Tender',
-                        index=index,
-                        body=mapping
-                    )
-                    logger.info(f"Updated mapping for elasticsearch {mapping_}")
         config.registry.settings['api_specs'] = swagger_data
         config.add_route('cornice_swagger.open_api_path', '/swagger.json')
         config.add_route('health', '/health')
@@ -77,9 +57,10 @@ def main(global_config, **settings):
             if not pname:
                 continue
             try:
-                app = config.maybe_dotted(pname)
-                app(config)
-                logger.info(f"Installed app {pname}")
+                app = getattr(config.maybe_dotted(pname), 'includeme', '')
+                if app:
+                    app(config)
+                    logger.info(f"Installed app {pname}")
             except KeyError as e:
                 logger.error(f"Unable to load {pname} plugin. Error: {repr(e)}")
         config.scan()

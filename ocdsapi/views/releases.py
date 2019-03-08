@@ -6,11 +6,11 @@ from cornice.resource import resource, view
 from itertools import chain
 from paginate_sqlalchemy import SqlalchemyOrmPage
 from sqlalchemy import exc
-from elasticsearch.helpers import bulk, ElasticsearchException
 from ocdsapi.models import Release, Record
 from ocdsapi.validation import validate_release_bulk, validate_release_id
 from ocdsapi.constants import YES
-from ocdsapi.utils import wrap_in_release_package, factory, prepare_record
+from ocdsapi.utils import wrap_in_release_package, factory
+from ocdsapi.events import RecordBatchUpdate
 
 
 logger = getLogger('ocdsapi')
@@ -40,7 +40,7 @@ class ReleasesResource:
         existing = set(chain(*query.all()))
         result = {}
         oks = releases['ok']
-        index_bulk = []
+        records = []
         for release_id in oks.keys():
             if release_id in existing:
                 result[release_id] = {
@@ -85,6 +85,7 @@ class ReleasesResource:
                         )
                         logger.info(f"Update record {release.ocid} with release {release.release_id}")
                     session.add(record)
+                    records.append(record)
                     logger.info(f"Added release {release.release_id} to record {release.ocid}")
 
                 except exc.SQLAlchemyError as e:
@@ -93,6 +94,7 @@ class ReleasesResource:
                         'description': repr(e)
                     }
         result.update(releases['error'])
+        self.request.registry.notify(RecordBatchUpdate(self.request, records))
         return result
 
     @view(renderer='simplejson', permission='view')
