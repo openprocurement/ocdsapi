@@ -49,6 +49,7 @@ def main(global_config, **settings):
         config.registry.settings['api_specs'] = swagger_data
         config.add_route('cornice_swagger.open_api_path', '/swagger.json')
         config.add_route('health', '/health')
+        config.add_route('self.schema', '/release-schema.json')
         config.cornice_enable_openapi_explorer(api_explorer_path='/swagger.ui')
         config.include('.models')
         config.add_renderer('simplejson', JSON(serializer=simplejson.dumps))
@@ -72,19 +73,14 @@ def main(global_config, **settings):
         if settings.get('api.force_validation', False):
             config.registry.validator = fastjsonschema.compile(config.registry.schema)
         apps = settings.get('apps', '').split(',')
-        for app in apps:
-            if not app:
+        for pname in apps:
+            if not pname:
                 continue
-            path, _, plugin = app.partition(':')
-            if not plugin:
-                plugin = 'includeme'
             try:
-                module = resolve.resolve(path)
-                if hasattr(module, plugin):
-                    getattr(module, plugin)(config)
-                else:
-                    logger.error(f"App {path} unavailable, check your configuration")
+                app = config.maybe_dotted(pname)
+                app(config)
+                logger.info(f"Installed app {pname}")
             except KeyError as e:
-                logger.error(f"Unable to load {path} plugin. Error: {repr(e)}")
+                logger.error(f"Unable to load {pname} plugin. Error: {repr(e)}")
         config.scan()
     return config.make_wsgi_app()
