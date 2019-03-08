@@ -57,7 +57,7 @@ def main():
                     [{
                         "id": r.release_id,
                         "date": r.date,
-                        "ocid": r.ocid
+                        "ocid": r.id
                     } for r in record.releases],
                     rules
             )

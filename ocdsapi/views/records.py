@@ -62,7 +62,7 @@ class RecordResource:
                 self.request
                 .dbsession
                 .query(Record)
-                .filter(Record.ocid == ocid)
+                .filter(Record.id == ocid)
                 .options(joinedload("releases").load_only("date", "ocid"))
                 .first()
             )
@@ -78,7 +78,7 @@ class RecordResource:
             self.request,
             record,
             [{
-                "id": r.release_id,
+                "id": r.id,
                 "date": r.date,
                 "ocid": r.ocid
                 } for r in record.releases],

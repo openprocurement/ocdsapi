@@ -56,7 +56,7 @@ def prepare_record(request, record, releases, merge_rules):
         # 'versionedRelease': ocdsmerge.merge_versioned(
         #     releases, merge_rules=merge_rules
         # ),
-        'ocid': record.ocid,
+        'ocid': record.id,
     }
     return record
 
@@ -123,9 +123,9 @@ def format_record_package(request, pager, ids_only=False):
                 request,
                 record,
                 [{
-                    "id": r.release_id,
+                    "id": r.id,
                     "date": r.date,
-                    "ocid": r.ocid
+                    "ocid": r.id
                 } for r in record.releases],
                 request.registry.merge_rules
             )

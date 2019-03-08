@@ -11,7 +11,7 @@ def reindex_record_bulk(event):
     index_bulk = [{
         '_index': request.registry.es_index,
         '_type': 'Tender',
-        '_id': es_doc.ocid,
+        '_id': es_doc.id,
         '_source': {'ocds': es_doc.compiled_release}
         } for es_doc in event.records
     ]
