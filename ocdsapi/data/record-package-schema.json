@@ -104,7 +104,7 @@
       "type": "array",
       "minItems": 1,
       "items": {
-        "$ref": "#/models/Record"
+        "$ref": "#/definitions/Record"
       },
       "uniqueItems": true
     }
