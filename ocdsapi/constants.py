@@ -185,12 +185,12 @@ RECORD = {
         "compiledRelease": {
           "title": "Compiled release",
           "description": "This is the latest version of all the contracting data, it has the same schema as an open contracting release.",
-          "$ref": "#/models/Release"
+          "$ref": "#/definitions/Release"
         },
         "versionedRelease": {
           "title": "Versioned release",
           "description": "This contains the history of the data in the compiledRecord. With all versions of the information and the release they came from.",
-          "$ref": "#/models/Release"
+          "$ref": "#/definitions/Release"
         }
       },
       "required": [
