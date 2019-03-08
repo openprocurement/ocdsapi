@@ -1,4 +1,5 @@
 import operator
+from datetime import datetime
 from logging import getLogger
 
 import ocdsmerge
@@ -11,6 +12,7 @@ from ocdsapi.validation import validate_release_bulk, validate_release_id
 from ocdsapi.constants import YES
 from ocdsapi.utils import wrap_in_release_package, factory
 from ocdsapi.events import RecordBatchUpdate
+from ocdsapi.pager import Pager
 
 
 logger = getLogger('ocdsapi')
@@ -55,7 +57,8 @@ class ReleasesResource:
                         id=release_raw['id'],
                         ocid=release_raw['ocid'],
                         date=release_raw.get('date'),
-                        value=release_raw
+                        value=release_raw,
+                        timestamp=datetime.now()
                     )
                     result[id] = {
                         "status": "ok",
@@ -70,6 +73,7 @@ class ReleasesResource:
                             id=release.ocid,
                             releases=[release],
                             date=release.date,
+                            timestamp=datetime.now(),
                             compiled_release=ocdsmerge.merge(
                                 [release.value])
                         )
@@ -100,18 +104,19 @@ class ReleasesResource:
     @view(renderer='simplejson', permission='view')
     def get(self):
         """ Returns list of releases in package sorted by date in descending order. """
-        page_number_requested = self.request.params.get('page') or 1
+        
+        pager = Pager(self.request, Release, limit=self.page_size)
         ids_only = self.request.params.get('idsOnly', '')\
                    and self.request.params.get('idsOnly').lower() in YES
-        if ids_only:
-            keys = (Release.id, Release.date, Release.ocid)
-        else:
-            keys = (Release.id, Release.date, Release.value)
-        pager = SqlalchemyOrmPage(
-            self.request.dbsession.query(*keys).order_by(Release.date.desc()),
-            page=int(page_number_requested),
-            items_per_page=self.page_size
-            )
+        # if ids_only:
+        #     keys = (Release.id, Release.date, Release.ocid)
+        # else:
+        #     keys = (Release.id, Release.date, Release.value)
+        # pager = SqlalchemyOrmPage(
+        #     self.request.dbsession.query(*keys).order_by(Release.date.desc()),
+        #     page=int(page_number_requested),
+        #     items_per_page=self.page_size
+        #     )
 
         return self.request.release_package(pager, ids_only)
 

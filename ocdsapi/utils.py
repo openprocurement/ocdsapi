@@ -71,34 +71,27 @@ def wrap_in_release_package(request, releases, date):
     }
 
 
-def format_release_package(request, pager, ids_only=False):
-    dates = [item[1] for item in pager.items]
-    date = max(dates)\
-        if dates else datetime.now().isoformat()
-    if ids_only:
-        releases = [
-            {"id": item[0], "ocid": item[2]}
-            for item in pager.items
-        ]
+def get_ids_only(row):
+    return {"id": row.id, "ocid": row.ocid}
 
-    else:
-        releases = [
-            item[2] for item in pager.items
-        ]
 
-    next_page = pager.next_page if pager.next_page else pager.page,
-    links = {
-        # 'total': pager.page_count,
+def release_package(request, pager, ids_only=False):
+
+    items, next_token, prev_token = pager.run()
+    getter = operator.attrgetter('value') if not ids_only else get_ids_only
+    releases = [getter(row) for row in items]
+    max_date = max([release.get('date') for release in releases]) if releases\
+        else datetime.now().isoformat()
+    package = wrap_in_release_package(request, releases, max_date)
+    package['links'] = {
         'next': request.route_url(
-            'releases.json', _query=(('page', next_page),)
-            )
-    }
-    if pager.previous_page:
-        links['prev'] = request.route_url(
-            'releases.json', _query=(('page', pager.previous_page),)
-        )
-    package = wrap_in_release_package(request, releases, date)
-    package['links'] = links
+            'releases.json',
+            _query=(('page', next_token),)),
+        'prev': request.route_url(
+            'releases.json',
+            _query=(('page', prev_token),)),
+        }
+
     return package
 
 
@@ -111,7 +104,7 @@ def linked_release(request, release):
     }
 
 
-def format_record_package(request, pager, ids_only=False):
+def record_package(request, pager, ids_only=False):
 
     records = []
     dates = []
