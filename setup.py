@@ -24,13 +24,13 @@ requires = [
     'transaction',
     'psycopg2cffi',
     'zope.sqlalchemy',
-    'zope.dottedname',
     'ocdsmerge',
     'simplejson',
     'pyyaml',
     'fastjsonschema',
     'deep_merge',
-    'elasticsearch>=6.0.0,<7.0.0'
+    'elasticsearch>=6.0.0,<7.0.0',
+    'gevent'
 ]
 
 tests_require = [
