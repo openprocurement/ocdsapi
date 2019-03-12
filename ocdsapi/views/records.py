@@ -4,6 +4,7 @@ from paginate_sqlalchemy import SqlalchemyOrmPage
 from sqlalchemy.orm import joinedload
 
 from ocdsapi.models import Record
+from ocdsapi.pager import Pager
 from ocdsapi.validation import validate_ocid
 from ocdsapi.constants import YES
 from ocdsapi.utils import prepare_record,\
@@ -25,19 +26,17 @@ class RecordsResource:
                       .query(Record)
                       .options(joinedload("releases").load_only("date", "ocid"))
                       .order_by(Record.date.desc()))
-        self.page_size = request.registry.page_size
+        self.page_size = int(request.params.get('size')) \
+            if (request.params.get('size')
+                and str.isdigit(request.params.get('size'))) \
+            else request.registry.page_size
 
     @view(renderer='simplejson', permission='view')
     def get(self):
         """ Returns list of records in package sorted by date in descending order. """
-        page_number_requested = self.request.params.get('page') or 1
         ids_only = self.request.params.get('idsOnly', '')\
             and self.request.params.get('idsOnly').lower() in YES
-        pager = SqlalchemyOrmPage(
-            self.query,
-            page=int(page_number_requested),
-            items_per_page=self.page_size
-        )
+        pager = Pager(self.request, Record, limit=self.page_size)
         return self.request.record_package(pager, ids_only)
 
 

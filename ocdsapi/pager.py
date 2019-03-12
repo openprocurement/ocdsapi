@@ -66,7 +66,6 @@ class Pager:
         self.base = self.directions[direction](timestamp, start_key)
 
     def run(self):
-        import pdb; pdb.set_trace()
         items = self.base.limit(self.limit).all()
         if items:
             last = items[-1]
