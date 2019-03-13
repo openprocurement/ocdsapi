@@ -1,0 +1,177 @@
+{
+  "publisher": {
+    "name": "SE \"Prozorro\""
+  },
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "publicationPolicy": "https://docs.google.com/document/d/1JIcs16ULdpmoAC0dY53QicQyzD5iYB6SqCB6duIUeNE/edi://docs.google.com/document/d/e/2PACX-1vSDw3f7Fcrs7jwSbOARpnFXlchHyPgt_gQI2b2ASTrBF6a1-FISmUWcFZoFkCU0xjvI2_aQPgwqknHj/pub",
+  "version": "1.1",
+  "extensions": [
+    "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_qualification_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_auction_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_complaint_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_currentStage_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_linkedDocument_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_negotiation_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_eligibility_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_pendingCancellation_extension/master/extension.json<Paste>",
+    "https://raw.githubusercontent.com/openprocurement/ocds_deliveryDate_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_contractNumber_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_guarantee_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_procurementMethodType_extension/master/extension.json",
+    "https://raw.githubusercontent.com/openprocurement/ocds_valueAddedTax_extension/master/extension.json",
+    "https://raw.githubusercontent.com/open-contracting-extensions/ocds_bid_extension/master/extension.json",
+    "https://raw.githubusercontent.com/open-contracting-extensions/ocds_lots_extension/master/extension.json"
+  ],
+  "records": [
+    {
+      "releases": [
+        {
+          "url": "http://api.ocds.prozorro.openprocurement.io/api/release.json?releaseID=3926e5c55a7f82e711a9e4c9bd890709",
+          "date": "2019-02-28T14:34:10.687274+02:00"
+        },
+        {
+          "url": "http://api.ocds.prozorro.openprocurement.io/api/release.json?releaseID=b08fbc456dcf3bd843ceb27742155162",
+          "date": "2019-03-02T16:00:21.346980+02:00"
+        }
+      ],
+      "compiledRelease": {
+        "tag": [
+          "compiled"
+        ],
+        "ocid": "ocds-be6bcu-UA-2019-02-25-000920-c",
+        "language": "uk",
+        "initiationType": "tender",
+        "parties": [
+          {
+            "id": "UA-EDR-01987037",
+            "identifier": {
+              "id": "01987037",
+              "legalName": "\u041a\u043e\u043c\u0443\u043d\u0430\u043b\u044c\u043d\u0438\u0439 \u0437\u0430\u043a\u043b\u0430\u0434 \"\u041a\u0440\u0438\u0432\u043e\u0440\u0456\u0437\u044c\u043a\u0430 \u043c\u0456\u0441\u044c\u043a\u0430 \u043b\u0456\u043a\u0430\u0440\u043d\u044f \u21165\" \u041a\u0440\u0438\u0432\u043e\u0440\u0456\u0437\u044c\u043a\u043e\u0457 \u043c\u0456\u0441\u044c\u043a\u043e\u0457 \u0440\u0430\u0434\u0438",
+              "scheme": "UA-EDR"
+            },
+            "address": {
+              "countryName": "\u0423\u043a\u0440\u0430\u0457\u043d\u0430",
+              "locality": "\u041a\u0420\u0418\u0412\u0418\u0419 \u0420\u0406\u0413",
+              "postalCode": "50049",
+              "region": "\u0414\u043di\u043f\u0440\u043e\u043f\u0435\u0442\u0440\u043e\u0432\u0441\u044c\u043a\u0430 \u043e\u0431\u043b\u0430\u0441\u0442\u044c",
+              "streetAddress": "\u0432\u0443\u043b. \u041f\u043e\u043f\u0435\u0440\u0435\u0447\u043d\u0430, \u0431\u0443\u0434.1\u0430"
+            },
+            "contactPoint": {
+              "email": "pjataja_doktor@ukr.net",
+              "name": "\u0428\u0438\u043d\u043a\u0430\u0440\u0435\u043d\u043a\u043e \u0422\u0435\u0442\u044f\u043d\u0430 \u0410\u043d\u0430\u0442\u043e\u043b\u0456\u0457\u0432\u043d\u0430",
+              "telephone": "0682198121"
+            },
+            "kind": "general",
+            "name": "\u041a\u0440\u0438\u0432\u043e\u0440\u0456\u0437\u044c\u043a\u0430 \u043c\u0456\u0441\u044c\u043a\u0430 \u043b\u0456\u043a\u0430\u0440\u043d\u044f \u21165",
+            "roles": [
+              "procuringEntity",
+              "buyer"
+            ]
+          }
+        ],
+        "buyer": {
+          "name": "\u041a\u0440\u0438\u0432\u043e\u0440\u0456\u0437\u044c\u043a\u0430 \u043c\u0456\u0441\u044c\u043a\u0430 \u043b\u0456\u043a\u0430\u0440\u043d\u044f \u21165",
+          "id": "UA-EDR-01987037"
+        },
+        "tender": {
+          "status": "active",
+          "currentStage": "active.auction",
+          "procurementMethodType": "belowThreshold",
+          "id": "494ad72f79cd42c38db62055366a769f",
+          "tenderID": "UA-2019-02-25-000920-c",
+          "title": "33140000-3 \u041c\u0435\u0434\u0438\u0447\u043d\u0456 \u043c\u0430\u0442\u0435\u0440\u0456\u0430\u043b\u0438 (\u0414\u0456\u0430\u0433\u043d\u043e\u0441\u0442\u0438\u0447\u043d\u0456 \u043d\u0430\u0431\u043e\u0440\u0438, \u043f\u0440\u0438\u043b\u0430\u0434\u0434\u044f \u0434\u043b\u044f \u0437\u0430\u0431\u043e\u0440\u0443 \u043a\u0440\u043e\u0432\u0456)",
+          "auctions": [
+            {
+              "id": 0,
+              "period": {
+                "startDate": "2019-03-04T15:52:23+02:00"
+              },
+              "minimalStep": {
+                "amount": 550,
+                "currency": "UAH",
+                "valueAddedTaxIncluded": true
+              }
+            }
+          ],
+          "items": [
+            {
+              "id": "c2b515b5830c41939c50805f5c24519a",
+              "classification": {
+                "id": "33140000-3",
+                "scheme": "\u0414\u041a021"
+              },
+              "unit": {
+                "name": "\u043e\u0434."
+              },
+              "deliveryAddress": {
+                "countryName": "\u0423\u043a\u0440\u0430\u0457\u043d\u0430",
+                "locality": "\u041a\u0420\u0418\u0412\u0418\u0419 \u0420\u0406\u0413",
+                "postalCode": "50049",
+                "region": "\u0414\u043di\u043f\u0440\u043e\u043f\u0435\u0442\u0440\u043e\u0432\u0441\u044c\u043a\u0430 \u043e\u0431\u043b\u0430\u0441\u0442\u044c",
+                "streetAddress": "\u0432\u0443\u043b \u041f\u043e\u043f\u0435\u0440\u0435\u0447\u043d\u0430, 1\u0430"
+              },
+              "deliveryDate": {
+                "endDate": "2019-12-31T00:00:00+02:00"
+              },
+              "description": "\u0414\u0456\u0430\u0433\u043d\u043e\u0441\u0442\u0438\u0447\u043d\u0456 \u043d\u0430\u0431\u043e\u0440\u0438, \u043f\u0440\u0438\u043b\u0430\u0434\u0434\u044f \u0434\u043b\u044f \u0437\u0430\u0431\u043e\u0440\u0443 \u043a\u0440\u043e\u0432\u0456",
+              "quantity": 6399
+            }
+          ],
+          "value": {
+            "amount": 110000,
+            "currency": "UAH",
+            "valueAddedTaxIncluded": true
+          },
+          "procurementMethod": "open",
+          "guarantee": {
+            "currency": "UAH"
+          },
+          "awardCriteria": "lowestCost",
+          "submissionMethod": [
+            "electronicAuction"
+          ],
+          "tenderPeriod": {
+            "endDate": "2019-03-02T16:00:00+02:00",
+            "startDate": "2019-02-28T14:31:00+02:00"
+          },
+          "enquiryPeriod": {
+            "endDate": "2019-02-28T14:30:00+02:00",
+            "startDate": "2019-02-25T14:28:04.904247+02:00"
+          },
+          "procuringEntity": {
+            "name": "\u041a\u0440\u0438\u0432\u043e\u0440\u0456\u0437\u044c\u043a\u0430 \u043c\u0456\u0441\u044c\u043a\u0430 \u043b\u0456\u043a\u0430\u0440\u043d\u044f \u21165",
+            "id": "UA-EDR-01987037"
+          },
+          "documents": [
+            {
+              "id": "951c9b5ff6b848d2bcc5e93938e1366c",
+              "documentScope": "tender",
+              "dateModified": "2019-02-25T14:30:37.515827+02:00",
+              "datePublished": "2019-02-25T14:30:37.515793+02:00",
+              "documentType": "biddingDocuments",
+              "format": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "title": "\u041e\u0433\u043e\u043b\u043e\u0448\u0435\u043d\u043d\u044f.docx",
+              "url": "https://public.docs.openprocurement.org/get/77ed14e3715e45edbb78f5a3c22622c7?KeyID=52462340&Signature=lnJ7ECQLfJAgSOtiqoXKw7QWLSIYwnlFWb7NrSIc%252BCDOiI9wYMGeYRgB0CWoH7%2FfCXdgF3rlwLLMCu2JbQWFAw%253D%253D"
+            },
+            {
+              "id": "671fb60605074853af95908e98026d40",
+              "documentScope": "tender",
+              "dateModified": "2019-02-25T14:38:02.591401+02:00",
+              "datePublished": "2019-02-25T14:38:02.591378+02:00",
+              "format": "application/pkcs7-signature",
+              "title": "sign.p7s",
+              "url": "https://public.docs.openprocurement.org/get/0ac0fff024cb491aba6312bdec95f8d9?KeyID=52462340&Signature=T7%252BiwL408kwR9QK4X6OU%2FZTRsVae8b0qLDYDxN%2FxV4mmIL41XVFtwVrnl7vHYY7NI2SBidNUTnQD6pI0ay%2F9Dg%253D%253D"
+            }
+          ]
+        },
+        "id": "b08fbc456dcf3bd843ceb27742155162",
+        "date": "2019-03-02T16:00:21.346980+02:00"
+      },
+      "ocid": "ocds-be6bcu-UA-2019-02-25-000920-c"
+    }
+  ],
+  "publishedDate": "2019-03-02T16:00:21.346980+02:00",
+  "uri": "http://api.ocds.prozorro.openprocurement.io/api/record.json?ocid=ocds-be6bcu-UA-2019-02-25-000920-c",
+  "links": {}
+}

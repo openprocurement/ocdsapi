@@ -7,6 +7,15 @@ with open(os.path.join(here, 'data', 'release-package-schema.json')) as _in:
 with open(os.path.join(here, 'data', 'record-package-schema.json')) as _in:
     record_package_schema = json.load(_in)
 
+# Example Value
+with open(os.path.join(here, 'data', 'examples/record.json')) as _in:
+    record_example = json.load(_in)
+with open(os.path.join(here, 'data', 'examples/records.json')) as _in:
+    records_example = json.load(_in)
+with open(os.path.join(here, 'data', 'examples/release.json')) as _in:
+    release_example = json.load(_in)
+with open(os.path.join(here, 'data', 'examples/releases.json')) as _in:
+    releases_example = json.load(_in)
 
 
 YES = frozenset(('true', '1', 'y', 'yes', 't'))
@@ -109,7 +118,8 @@ RESPONSES = {
         "get": {
             'responses': {
                 '200': {
-                    'schema': release_package_schema
+                    'schema': release_package_schema,
+                    'examples': releases_example
                 }
             }
 
@@ -119,7 +129,8 @@ RESPONSES = {
         "get": {
             'responses': {
                 '200': {
-                    'schema': release_package_schema
+                    'schema': release_package_schema,
+                    'examples': release_example
                 }
             }
         },
@@ -128,7 +139,8 @@ RESPONSES = {
         "get": {
             'responses': {
                 '200': {
-                    'schema': record_package_schema
+                    'schema': record_package_schema,
+                    'examples': record_example
                 }
             }
         },
@@ -137,7 +149,8 @@ RESPONSES = {
         "get": {
             'responses': {
                 '200': {
-                    'schema': record_package_schema
+                    'schema': record_package_schema,
+                    'examples': records_example
                 }
             }
         },
