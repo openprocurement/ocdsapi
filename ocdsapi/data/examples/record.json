@@ -7,7 +7,6 @@
   "version": "1.1",
   "extensions": [
     "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json",
-    "https://raw.githubusercontent.com/open-contracting/api_extension/eeb2cb400c6f1d1352130bd65b314ab00a96d6ad/extension.json",
     "https://raw.githubusercontent.com/openprocurement/ocds_qualification_extension/master/extension.json",
     "https://raw.githubusercontent.com/openprocurement/ocds_auction_extension/master/extension.json",
     "https://raw.githubusercontent.com/openprocurement/ocds_complaint_extension/master/extension.json",
