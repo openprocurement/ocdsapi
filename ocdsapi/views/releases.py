@@ -28,7 +28,10 @@ class ReleasesResource:
     def __init__(self, request, context=None):
 
         self.request = request
-        self.page_size = request.registry.page_size
+        self.page_size = int(request.params.get('size')) \
+            if (request.params.get('size')
+                and str.isdigit(request.params.get('size'))) \
+            else request.registry.page_size
 
     @view(validators=(validate_release_bulk),
           content_type='application/json', permission='create')
@@ -108,16 +111,6 @@ class ReleasesResource:
         pager = Pager(self.request, Release, limit=self.page_size)
         ids_only = self.request.params.get('idsOnly', '')\
                    and self.request.params.get('idsOnly').lower() in YES
-        # if ids_only:
-        #     keys = (Release.id, Release.date, Release.ocid)
-        # else:
-        #     keys = (Release.id, Release.date, Release.value)
-        # pager = SqlalchemyOrmPage(
-        #     self.request.dbsession.query(*keys).order_by(Release.date.desc()),
-        #     page=int(page_number_requested),
-        #     items_per_page=self.page_size
-        #     )
-
         return self.request.release_package(pager, ids_only)
 
 
