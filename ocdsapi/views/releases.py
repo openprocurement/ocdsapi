@@ -6,7 +6,7 @@ import ocdsmerge
 from cornice.resource import resource, view
 from itertools import chain
 from paginate_sqlalchemy import SqlalchemyOrmPage
-from sqlalchemy import exc
+from sqlalchemy import exc, cast, TIMESTAMP
 from ocdsapi.models import Release, Record
 from ocdsapi.validation import validate_release_bulk, validate_release_id
 from ocdsapi.constants import YES
@@ -56,12 +56,14 @@ class ReleasesResource:
                 release_raw = oks.get(id)
 
                 try:
+
+                    timestamp = cast(datetime.now(), TIMESTAMP)
                     release = Release(
                         id=release_raw['id'],
                         ocid=release_raw['ocid'],
                         date=release_raw.get('date'),
                         value=release_raw,
-                        timestamp=datetime.now()
+                        timestamp=timestamp
                     )
                     result[id] = {
                         "status": "ok",
@@ -76,12 +78,14 @@ class ReleasesResource:
                             id=release.ocid,
                             releases=[release],
                             date=release.date,
-                            timestamp=datetime.now(),
+                            timestamp=timestamp,
                             compiled_release=ocdsmerge.merge(
                                 [release.value])
                         )
                         logger.info(f"Created record {release.ocid} with release {release.id}")
                     else:
+                        if not record:
+                            record = records[release.ocid]
                         record.releases.append(release)
                         max_date_release = max(
                             record.releases, key=operator.attrgetter('date')
@@ -91,9 +95,9 @@ class ReleasesResource:
                             [r.value for r in record.releases]
                         )
                         logger.info(f"Update record {release.ocid} with release {release.id}")
-                    session.add(record)
                     records.append(record)
-                    logger.info(f"Added release {release.id} to record {release.id}")
+                    session.add(record)
+                    logger.info(f"Added release {release.id} to record {record.id}")
 
                 except exc.SQLAlchemyError as e:
                     result[id] = {
