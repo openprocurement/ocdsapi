@@ -1,8 +1,8 @@
-"""rebuild
+"""indexes
 
-Revision ID: f7defbda6a36
+Revision ID: e8506663a5d8
 Revises: 
-Create Date: 2019-03-14 15:37:28.592499
+Create Date: 2019-03-18 18:19:28.629330
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'f7defbda6a36'
+revision = 'e8506663a5d8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,6 +26,7 @@ def upgrade():
     )
     op.create_index('date-record', 'records', ['id', sa.text('date DESC')], unique=False)
     op.create_index('record-timestamp', 'records', ['timestamp'], unique=False)
+    op.create_index('record-timestamp-id', 'records', [sa.text('timestamp ASC'), 'id'], unique=False)
     op.create_table('releases',
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('ocid', sa.String(), nullable=True),
@@ -46,6 +47,7 @@ def downgrade():
     op.drop_index('ocids', table_name='releases')
     op.drop_index('date', table_name='releases')
     op.drop_table('releases')
+    op.drop_index('record-timestamp-id', table_name='records')
     op.drop_index('record-timestamp', table_name='records')
     op.drop_index('date-record', table_name='records')
     op.drop_table('records')
