@@ -1,4 +1,6 @@
 from elasticsearch import Elasticsearch
+from ocdsapi.search.subscribers import reindex_record_bulk
+from ocdsapi.events import RecordBatchUpdate
 
 import logging
 import json
@@ -29,4 +31,4 @@ def includeme(config):
                 logger.info(f"Updated mapping for elasticsearch {mapping_}")
             except Exception as e:
                 logger.warn(f"Failed to update elasticsearch mapping with error: {e}")
-    config.scan('ocdsapi.search.subscribers')
+    config.add_subscriber(reindex_record_bulk, RecordBatchUpdate)

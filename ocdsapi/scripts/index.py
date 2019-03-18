@@ -5,7 +5,7 @@ from logging.config import fileConfig
 from json import load
 from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch.helpers import bulk
-from paginate_sqlalchemy import SqlalchemyOrmPage
+# from paginate_sqlalchemy import SqlalchemyOrmPage
 from ocdsmerge.merge import get_merge_rules
 from ocdsapi.models import Record
 from ocdsapi.utils import prepare_record, get_db_session
@@ -57,7 +57,7 @@ def main():
                     [{
                         "id": r.release_id,
                         "date": r.date,
-                        "ocid": r.ocid
+                        "ocid": r.id
                     } for r in record.releases],
                     rules
             )

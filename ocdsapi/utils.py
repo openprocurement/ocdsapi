@@ -48,7 +48,7 @@ def prepare_record(request, record, releases, merge_rules):
         'releases': [
             linked_release(request, release)
             for release in sorted(
-                releases, key=operator.itemgetter('date')
+                releases, key=operator.attrgetter('date')
                 )
         ],
         'compiledRelease': compiledRelease,
@@ -56,7 +56,7 @@ def prepare_record(request, record, releases, merge_rules):
         # 'versionedRelease': ocdsmerge.merge_versioned(
         #     releases, merge_rules=merge_rules
         # ),
-        'ocid': record.ocid,
+        'ocid': record.id,
     }
     return record
 
@@ -71,87 +71,77 @@ def wrap_in_release_package(request, releases, date):
     }
 
 
-def format_release_package(request, pager, ids_only=False):
-    dates = [item[1] for item in pager.items]
-    date = max(dates)\
-        if dates else datetime.now().isoformat()
-    if ids_only:
-        releases = [
-            {"id": item[0], "ocid": item[2]}
-            for item in pager.items
-        ]
+def get_ids_only(row):
+    return {"id": row.id, "ocid": row.ocid}
 
-    else:
-        releases = [
-            item[2] for item in pager.items
-        ]
 
-    next_page = pager.next_page if pager.next_page else pager.page,
-    links = {
-        # 'total': pager.page_count,
+def release_package(request, pager, ids_only=False):
+    items, next_token, prev_token = pager.run()
+    max_date = max([release.date for release in items]) if items \
+        else datetime.now().isoformat()
+    getter = operator.attrgetter('value') if not ids_only else get_ids_only
+    releases = [getter(row) for row in items]
+    package = wrap_in_release_package(request, releases, max_date)
+    package['links'] = {
         'next': request.route_url(
-            'releases.json', _query=(('page', next_page),)
-            )
-    }
-    if pager.previous_page:
-        links['prev'] = request.route_url(
-            'releases.json', _query=(('page', pager.previous_page),)
-        )
-    package = wrap_in_release_package(request, releases, date)
-    package['links'] = links
+            'releases.json',
+            _query=(('page', next_token), ('size', pager.limit))
+            if pager.limit != request.registry.page_size
+            else (('page', next_token),)),
+        'prev': request.route_url(
+            'releases.json',
+            query=(('page', prev_token), ('size', pager.limit))
+            if pager.limit != request.registry.page_size
+            else (('page', prev_token),)),
+        }
+
     return package
 
 
 def linked_release(request, release):
     return {
         'url': request.route_url(
-            'release.json', _query=(('releaseID', release['id']),)
+            'release.json', _query=(('releaseID', release.id),)
             ),
-        'date': release['date']
+        'date': release.date
     }
 
 
-def format_record_package(request, pager, ids_only=False):
+def record_package(request, pager, ids_only=False):
 
-    records = []
-    dates = []
+    items, next_token, prev_token = pager.run()
 
-    for record in pager.items:
-        dates.append(find_max_date(record.releases))
-        records.append(
-            prepare_record(
-                request,
-                record,
-                [{
-                    "id": r.release_id,
-                    "date": r.date,
-                    "ocid": r.ocid
-                } for r in record.releases],
-                request.registry.merge_rules
-            )
-        )
-    date = max(dates) if dates else datetime.now().isoformat()
-    next_page = pager.next_page if pager.next_page else 1
+    records = [prepare_record(request, record,
+                              record.releases,
+                              # [{"id": r.id, "date": r.date, "ocid": r.id}
+                              #  for r in record.releases],
+                              # record.releases,
+                              # [],
+                              request.registry.merge_rules)
+               if not ids_only else
+               {"id": record.compiled_release['id'], "ocid": record.id}
+               for record in items]
+
+    max_date = max([find_max_date(record.releases) for record in items]) \
+        if items else datetime.now().isoformat()
+
     links = {
-        # 'total': pager.page_count,
         'next': request.route_url(
-            'records.json', _query=(('page', next_page),)
-            )
-    }
-    if pager.previous_page:
-        links['prev'] = request.route_url(
-            'records.json', _query=(('page', pager.previous_page),)
-        )
-    if ids_only:
-        records = [
-            {"id": r['compiledRelease']['id'], "ocid": r['ocid']}
-            for r in records
-        ]
+            'records.json',
+            _query=(('page', next_token), ('size', pager.limit))
+            if pager.limit != request.registry.page_size
+            else (('page', next_token),)),
+        'prev': request.route_url(
+            'records.json',
+            query=(('page', prev_token), ('size', pager.limit))
+            if pager.limit != request.registry.page_size
+            else (('page', prev_token),)),
+        }
 
     return wrap_in_record_package(
         request=request,
         records=records,
-        date=date,
+        date=max_date,
         links=links
     )
 

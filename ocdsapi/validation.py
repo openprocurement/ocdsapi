@@ -23,13 +23,13 @@ def validate_release_bulk(request, **kw):
         for release in releases:
             release.pop('id', '')  # can change
             release.pop('$schema', '')  # not used
-            release_id = hashlib.md5(str(release).encode('utf-8')).hexdigest()
-            release['id'] = release_id
+            id = hashlib.md5(str(release).encode('utf-8')).hexdigest()
+            release['id'] = id
             try:
                 release = release if not validator else validator(release)
-                request.validated['releases']['ok'][release_id] = release
+                request.validated['releases']['ok'][id] = release
             except JsonSchemaException as e:
-                request.validated['releases']['error'][release_id] = e.message
+                request.validated['releases']['error'][id] = e.message
     except JSONDecodeError as e:
         request.errors.add("body", "releases", "Invalid json content")
 
@@ -47,4 +47,4 @@ def validate_release_id(request, **kw):
     if not id_:
         request.errors.add("querystring", 'releaseID', 'releaseID required')
         return
-    request.validated['release_id'] = id_
+    request.validated['id'] = id_

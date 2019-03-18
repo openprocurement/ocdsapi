@@ -1,16 +1,17 @@
 import operator
+from datetime import datetime
 from logging import getLogger
 
 import ocdsmerge
 from cornice.resource import resource, view
 from itertools import chain
-from paginate_sqlalchemy import SqlalchemyOrmPage
-from sqlalchemy import exc
+from sqlalchemy import exc, cast, TIMESTAMP
 from ocdsapi.models import Release, Record
 from ocdsapi.validation import validate_release_bulk, validate_release_id
 from ocdsapi.constants import YES
 from ocdsapi.utils import wrap_in_release_package, factory
 from ocdsapi.events import RecordBatchUpdate
+from ocdsapi.pager import Pager
 
 
 logger = getLogger('ocdsapi')
@@ -26,7 +27,10 @@ class ReleasesResource:
     def __init__(self, request, context=None):
 
         self.request = request
-        self.page_size = request.registry.page_size
+        self.page_size = int(request.params.get('size')) \
+            if (request.params.get('size')
+                and str.isdigit(request.params.get('size'))) \
+            else request.registry.page_size
 
     @view(validators=(validate_release_bulk),
           content_type='application/json', permission='create')
@@ -35,46 +39,52 @@ class ReleasesResource:
         session = self.request.dbsession
         releases = self.request.validated['releases']
         query = (session
-                 .query(Release.release_id)
-                 .filter(Release.release_id.in_(tuple(releases['ok'].keys()))))
+                 .query(Release.id)
+                 .filter(Release.id.in_(tuple(releases['ok'].keys()))))
         existing = set(chain(*query.all()))
         result = {}
         oks = releases['ok']
         records = []
-        for release_id in oks.keys():
-            if release_id in existing:
-                result[release_id] = {
+        for id in oks.keys():
+            if id in existing:
+                result[id] = {
                     'status': 'error',
-                    'description': "{} already exists".format(release_id)
+                    'description': "{} already exists".format(id)
                 }
             else:
-                release_raw = oks.get(release_id)
+                release_raw = oks.get(id)
 
                 try:
+
+                    timestamp = cast(datetime.now(), TIMESTAMP)
                     release = Release(
-                        release_id=release_raw['id'],
+                        id=release_raw['id'],
                         ocid=release_raw['ocid'],
                         date=release_raw.get('date'),
-                        value=release_raw
+                        value=release_raw,
+                        timestamp=timestamp
                     )
-                    result[release_id] = {
+                    result[id] = {
                         "status": "ok",
                         "description": 'ok'
                     }
                     record = (session
                                 .query(Record)
-                                .filter(Record.ocid == release.ocid)
+                                .filter(Record.id == release.ocid)
                                 .first())
                     if not record:
                         record = Record(
-                            ocid=release.ocid,
+                            id=release.ocid,
                             releases=[release],
                             date=release.date,
+                            timestamp=timestamp,
                             compiled_release=ocdsmerge.merge(
                                 [release.value])
                         )
-                        logger.info(f"Created record {release.ocid} with release {release.release_id}")
+                        logger.info(f"Created record {release.ocid} with release {release.id}")
                     else:
+                        if not record:
+                            record = records[release.ocid]
                         record.releases.append(release)
                         max_date_release = max(
                             record.releases, key=operator.attrgetter('date')
@@ -83,13 +93,13 @@ class ReleasesResource:
                         record.compiled_release = ocdsmerge.merge(
                             [r.value for r in record.releases]
                         )
-                        logger.info(f"Update record {release.ocid} with release {release.release_id}")
-                    session.add(record)
+                        logger.info(f"Update record {release.ocid} with release {release.id}")
                     records.append(record)
-                    logger.info(f"Added release {release.release_id} to record {release.ocid}")
+                    session.add(record)
+                    logger.info(f"Added release {release.id} to record {record.id}")
 
                 except exc.SQLAlchemyError as e:
-                    result[release_id] = {
+                    result[id] = {
                         'status': 'error',
                         'description': repr(e)
                     }
@@ -100,19 +110,10 @@ class ReleasesResource:
     @view(renderer='simplejson', permission='view')
     def get(self):
         """ Returns list of releases in package sorted by date in descending order. """
-        page_number_requested = self.request.params.get('page') or 1
+        
+        pager = Pager(self.request, Release, limit=self.page_size)
         ids_only = self.request.params.get('idsOnly', '')\
                    and self.request.params.get('idsOnly').lower() in YES
-        if ids_only:
-            keys = (Release.release_id, Release.date, Release.ocid)
-        else:
-            keys = (Release.release_id, Release.date, Release.value)
-        pager = SqlalchemyOrmPage(
-            self.request.dbsession.query(*keys).order_by(Release.date.desc()),
-            page=int(page_number_requested),
-            items_per_page=self.page_size
-            )
-
         return self.request.release_package(pager, ids_only)
 
 
@@ -130,8 +131,8 @@ class ReleaseResource:
     @view(validators=(validate_release_id), renderer='simplejson', permission='view')
     def get(self):
         """ Returns a single OCDS release in format of package. """
-        id_ = self.request.validated['release_id']
-        release = self.request.dbsession.query(Release).filter(Release.release_id==id_).first()
+        id_ = self.request.validated['id']
+        release = self.request.dbsession.query(Release).filter(Release.id==id_).first()
         if not release:
             self.request.response.status = 404
             self.request.errors.add(
