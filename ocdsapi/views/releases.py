@@ -5,7 +5,6 @@ from logging import getLogger
 import ocdsmerge
 from cornice.resource import resource, view
 from itertools import chain
-from paginate_sqlalchemy import SqlalchemyOrmPage
 from sqlalchemy import exc, cast, TIMESTAMP
 from ocdsapi.models import Release, Record
 from ocdsapi.validation import validate_release_bulk, validate_release_id

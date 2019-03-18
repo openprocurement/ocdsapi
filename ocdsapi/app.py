@@ -1,5 +1,3 @@
-from gevent import monkey
-monkey.patch_all()
 import fastjsonschema
 import simplejson
 from logging import getLogger

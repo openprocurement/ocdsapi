@@ -48,7 +48,7 @@ def prepare_record(request, record, releases, merge_rules):
         'releases': [
             linked_release(request, release)
             for release in sorted(
-                releases, key=operator.itemgetter('date')
+                releases, key=operator.attrgetter('date')
                 )
         ],
         'compiledRelease': compiledRelease,
@@ -101,9 +101,9 @@ def release_package(request, pager, ids_only=False):
 def linked_release(request, release):
     return {
         'url': request.route_url(
-            'release.json', _query=(('releaseID', release['id']),)
+            'release.json', _query=(('releaseID', release.id),)
             ),
-        'date': release['date']
+        'date': release.date
     }
 
 
@@ -112,8 +112,11 @@ def record_package(request, pager, ids_only=False):
     items, next_token, prev_token = pager.run()
 
     records = [prepare_record(request, record,
-                              [{"id": r.id, "date": r.date, "ocid": r.id}
-                               for r in record.releases],
+                              record.releases,
+                              # [{"id": r.id, "date": r.date, "ocid": r.id}
+                              #  for r in record.releases],
+                              # record.releases,
+                              # [],
                               request.registry.merge_rules)
                if not ids_only else
                {"id": record.compiled_release['id'], "ocid": record.id}

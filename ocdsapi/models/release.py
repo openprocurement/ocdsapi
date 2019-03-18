@@ -35,7 +35,7 @@ class Record(Base):
     releases = relationship(
         "Release",
         backref='record',
-        lazy='joined'
+        lazy='joined',
     )
 
 
@@ -44,3 +44,4 @@ Index('date', Release.date.desc())
 Index('date-record', Record.id, Record.date.desc())
 Index('release-timestamp', Release.timestamp)
 Index('record-timestamp', Record.timestamp)
+Index('record-timestamp-id', Record.timestamp.asc(), Record.id)

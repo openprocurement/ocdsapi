@@ -1,6 +1,5 @@
 import operator
 from cornice.resource import resource, view
-from paginate_sqlalchemy import SqlalchemyOrmPage
 from sqlalchemy.orm import joinedload
 
 from ocdsapi.models import Record
@@ -21,11 +20,7 @@ class RecordsResource:
 
     def __init__(self, request, context=None):
         self.request = request
-        self.query = (request
-                      .dbsession
-                      .query(Record)
-                      .options(joinedload("releases").load_only("date", "ocid"))
-                      .order_by(Record.date.desc()))
+        self.context = context
         self.page_size = int(request.params.get('size')) \
             if (request.params.get('size')
                 and str.isdigit(request.params.get('size'))) \
@@ -50,6 +45,7 @@ class RecordResource:
 
     def __init__(self, request, context=None):
         self.request = request
+        self.context = context
 
     @view(
         validators=(validate_ocid,),
@@ -58,29 +54,29 @@ class RecordResource:
         """ Returns single OCDS record in package. """
         ocid = self.request.validated['ocid']
         record = (
-                self.request
-                .dbsession
-                .query(Record)
-                .filter(Record.id == ocid)
-                .options(joinedload("releases").load_only("date", "ocid"))
-                .first()
-            )
+            self.request
+            .dbsession
+            .query(Record)
+            .filter(Record.id == ocid)
+            .options(joinedload("releases").load_only("date", "ocid"))
+            .first()
+        )
         if not record:
             self.request.response.status = 404
             self.request.errors.add(
                 "querystring", 'ocid',
-                f'Record {ocid} not found'
+                'Record {} not found'.format(ocid)
                 )
             return
         date = find_max_date(record.releases)
+        releases = [
+            {"id": r.id, "date": r.date, "ocid": r.ocid}
+            for r in record.releases
+        ]
         record = prepare_record(
             self.request,
             record,
-            [{
-                "id": r.id,
-                "date": r.date,
-                "ocid": r.ocid
-                } for r in record.releases],
+            releases,
             self.request.registry.merge_rules
             )
 
