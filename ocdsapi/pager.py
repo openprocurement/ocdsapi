@@ -84,7 +84,7 @@ class Pager:
                 raw_string.decode('ascii').split('@')
             self.timestamp = parser.parse(self.timestamp)
         except Exception as error:
-            self.request.error.add('querystring', 'token', 'invalid')
+            self.request.errors.add('querystring', 'token', 'invalid')
             raise error
         self.base = self.directions[self.direction](
             self.timestamp, self.start_key

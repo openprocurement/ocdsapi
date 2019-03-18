@@ -69,14 +69,10 @@ class RecordResource:
                 )
             return
         date = find_max_date(record.releases)
-        releases = [
-            {"id": r.id, "date": r.date, "ocid": r.ocid}
-            for r in record.releases
-        ]
         record = prepare_record(
             self.request,
             record,
-            releases,
+            record.releases,
             self.request.registry.merge_rules
             )
 

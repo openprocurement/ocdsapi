@@ -120,9 +120,10 @@ class TestReleasesResourceRead(BaseTest):
     def test_get_simple_page(self):
         models = [
             Release(
-                release_id=uuid.uuid4().hex,
+                id=uuid.uuid4().hex,
                 ocid='ocid-{}'.format(index),
-                value={"id": str(index)*10}
+                value={"id": str(index)*10},
+                timestamp=datetime.now()
             )
             for index in range(10)
         ]
@@ -134,16 +135,17 @@ class TestReleasesResourceRead(BaseTest):
         self.nok(set((r['ocid'] for r in releases)).difference(
             set((m.ocid for m in models))
             ))
-        self.nok(set((r['release_id'] for r in releases)).difference(
-            set((m.release_id for m in models))
+        self.nok(set((r['id'] for r in releases)).difference(
+            set((m.id for m in models))
             ))
 
     def test_get_ids_only(self):
         models = [
             Release(
-                release_id=uuid.uuid4().hex,
+                id=uuid.uuid4().hex,
                 ocid='ocid-{}'.format(index),
                 date=datetime.now().isoformat(),
+                timestamp=datetime.now(),
                 value={"id": str(index)*10}
             )
             for index in range(10)
@@ -162,9 +164,10 @@ class TestReleasesResourceRead(BaseTest):
     def test_get_next_page(self):
         models = [
             Release(
-                release_id=uuid.uuid4().hex,
+                id=uuid.uuid4().hex,
                 ocid='ocid-{}'.format(index),
                 date=datetime.now().isoformat(),
+                timestamp=datetime.now(),
                 value={
                     "id": str(index)*10,
                     'title': str(index),
@@ -174,7 +177,12 @@ class TestReleasesResourceRead(BaseTest):
             for index in range(300)
         ]
         for model in models:
-            record = Record(ocid=model.ocid, releases=[model], date=model.date)
+            record = Record(
+                id=model.ocid,
+                releases=[model],
+                date=model.date,
+                timestamp=model.date
+            )
             self.session.add(record)
         for model in models:
             self.session.add(model)
@@ -182,8 +190,9 @@ class TestReleasesResourceRead(BaseTest):
         resp = self.app.get('/api/releases.json')
         self.eq(resp.status, '200 OK')
         self.ok('next' in resp.json['links'])
+        next_url = resp.json['links']['next']
 
-        resp = self.app.get('/api/releases.json', params={"page": 2})
+        resp = self.app.get(next_url)
         self.eq(resp.status, '200 OK')
         self.ok('next' in resp.json['links'])
         self.ok('prev' in resp.json['links'])
@@ -356,9 +365,10 @@ class TestRecordsResource(BaseTest):
         transaction.begin()
         models = [
             Release(
-                release_id=uuid.uuid4().hex,
+                id=uuid.uuid4().hex,
                 ocid='ocid-{}'.format(index),
                 date=datetime.now().isoformat(),
+                timestamp=datetime.now(),
                 value={
                     "id": str(index)*10,
                     'title': str(index),
@@ -369,7 +379,12 @@ class TestRecordsResource(BaseTest):
             for index in range(300)
         ]
         for model in models:
-            record = Record(ocid=model.ocid, releases=[model], date=model.date)
+            record = Record(
+                id=model.ocid,
+                releases=[model],
+                date=model.date,
+                timestamp=model.date
+            )
             #self.session.add(record)
         for model in models:
             self.session.add(model)
@@ -377,12 +392,12 @@ class TestRecordsResource(BaseTest):
         resp = self.app.get('/api/records.json')
         self.eq(resp.status, '200 OK')
         self.ok('next' in resp.json['links'])
+        next_url = resp.json['links']['next']
 
-        resp = self.app.get('/api/records.json', params={"page": 2})
+        resp = self.app.get(next_url)
         self.eq(resp.status, '200 OK')
         self.ok('next' in resp.json['links'])
         self.ok('prev' in resp.json['links'])
-
 
 
 class TestRecordResource(BaseTest):
