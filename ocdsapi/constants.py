@@ -29,6 +29,7 @@ DESCRIPTIONS = {
     "releases.json": {
 
         "get": {
+        "description": "Due to releases the updates on each contracting process event are supplied on a real-time basis. This feature assists users in receiving notifications about announcing new tenders, conducted awards, making contracts and similar updates. More than one releases may be published during a contracting process. Releases cannot be altered at any point since they are supposed to provide information precisely following each step of contracting cycle.",
         "responses": {
             "200": {"description": "Release package"},
             "404": {"description": "Release package unavailable"},
