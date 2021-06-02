@@ -32,7 +32,7 @@ pyramid-tm==2.2.1
 python-dateutil==2.7.5
 python-editor==1.0.3
 pytz==2018.7
-PyYAML==3.13
+PyYAML==5.4
 requests==2.20.1
 simplejson==3.16.0
 six==1.11.0
