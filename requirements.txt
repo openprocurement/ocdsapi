@@ -17,7 +17,7 @@ idna==2.7
 iso8601==0.1.12
 jsonref==0.2
 kombu==4.2.1
-Mako==1.0.7
+Mako==1.2.2
 MarkupSafe==1.1.0
 paginate==0.5.6
 paginate-sqlalchemy==0.3.0
